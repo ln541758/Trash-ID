@@ -7,6 +7,7 @@ import Notification from "./Screens/Notification";
 import { NavigationContainer } from "@react-navigation/native";
 import Home from "./Screens/Home";
 import ItemEditor from "./Screens/ItemEditor";
+import { app } from "./Firestore/firestoreSetup";
 
 export default function App() {
   const Stack = createStackNavigator();
