@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, View, TouchableOpacity, TextInput } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 import Categories from "./Screens/Categories";
@@ -8,8 +8,8 @@ import Notifications from "./Screens/Notifications";
 import Home from "./Screens/Home";
 import ItemEditor from "./Screens/ItemEditor";
 import ItemList from "./Screens/ItemList";
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 const Stack = createStackNavigator();
 
@@ -37,7 +37,7 @@ const App = () => {
             headerRight: () => (
               <View style={styles.headerRightContainer}>
                 <TouchableOpacity
-                  onPress={() => navigation.navigate("ItemEditor")}
+                  onPress={() => navigation.navigate("ItemEditor", { isEditMode: true })}
                   style={styles.addButton}
                 >
                   <FontAwesome6 name="add" size={24} color="black" />
@@ -55,8 +55,28 @@ const App = () => {
             ),
           })}
         />
-        <Stack.Screen name="ItemInfo" component={ItemInfo} />
-        <Stack.Screen name="ItemEditor" component={ItemEditor} />
+        <Stack.Screen
+          name="ItemInfo"
+          component={ItemInfo}
+        />
+        <Stack.Screen
+          name="ItemEditor"
+          component={ItemEditor}
+          options={({ route, navigation }) => ({
+            headerTitle: "Edit Item",
+            headerRight: () =>
+              !route.params?.isEditMode ? ( // 只在不是编辑模式的时候显示编辑按钮
+                <TouchableOpacity
+                  onPress={() => {
+                    navigation.setParams({ isEditMode: true });
+                  }}
+                  style={styles.headerButton}
+                >
+                  <Text style={styles.headerButtonText}>Edit</Text>
+                </TouchableOpacity>
+              ) : null,
+          })}
+        />
         <Stack.Screen name="Notifications" component={Notifications} />
       </Stack.Navigator>
     </NavigationContainer>
@@ -72,16 +92,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  searchBar: {
-    marginTop: 4, 
-    borderColor: "#ccc",
-    borderWidth: 1,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 5,
-    width: 200,
-    backgroundColor: "#fff",
-  },
   headerRightContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -89,6 +99,13 @@ const styles = StyleSheet.create({
   },
   addButton: {
     padding: 10,
+  },
+  headerButton: {
+    marginRight: 10,
+  },
+  headerButtonText: {
+    fontSize: 16,
+    color: "#007BFF",
   },
 });
 

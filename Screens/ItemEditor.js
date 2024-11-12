@@ -1,19 +1,18 @@
 import React, { useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-} from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
 import { Entypo } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import DropDownPicker from "react-native-dropdown-picker";
 import Checkbox from "expo-checkbox";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { items as importedItems, items } from "../Components/Items";
 
 export default function ItemEditor({ navigation, route }) {
-  const [image, setImage] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const isEditMode = route.params?.isEditMode ?? true;
+  const itemId = route.params?.itemId;
+  const currentItem = items.find((item) => item.id === itemId);
+  const [image, setImage] = useState(isEditMode ? "" : currentItem?.source);
+  const [selectedCategory, setSelectedCategory] = useState("Plastic");
   const [openCategoryPicker, setOpenCategoryPicker] = useState(false);
   const [categories, setCategories] = useState([
     { label: "Plastic", value: "Plastic" },
@@ -28,6 +27,7 @@ export default function ItemEditor({ navigation, route }) {
 
   // Function to handle opening the camera
   const pickImage = async () => {
+    if (!isEditMode) return;
     let result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -42,7 +42,9 @@ export default function ItemEditor({ navigation, route }) {
 
   // Function to show date picker
   const showDatePicker = () => {
-    setDatePickerVisibility(true);
+    if (isEditMode) {
+      setDatePickerVisibility(true);
+    }
   };
 
   // Function to hide date picker
@@ -66,37 +68,66 @@ export default function ItemEditor({ navigation, route }) {
     navigation.goBack();
   };
 
+  // Function to handle Edit button click
+  const handleEdit = () => {
+    navigation.navigate("ItemEditor", {
+      itemId: route.params.itemId,
+      isEditMode: true,
+    });
+  };
+
   return (
     <View style={styles.container}>
-      {/* Image Picker */}
-      <View style={styles.imageContainer} onTouchEnd={pickImage}>
+
+
+      {/* Image */}
+      <View
+        style={styles.imageContainer}
+        onTouchEnd={isEditMode ? pickImage : null}
+      >
         {image ? (
-          <Image source={{ uri: image }} style={styles.image} />
+          <Image source={image} style={styles.image} />
         ) : (
-          <View style={styles.placeholderImage}>
-            <Entypo name="camera" size={50} color="gray" />
-          </View>
+          isEditMode && (
+            <View style={styles.placeholderImage}>
+              <Entypo name="camera" size={50} color="gray" />
+            </View>
+          )
         )}
       </View>
 
-      {/* Categories Picker using DropDownPicker */}
-      <DropDownPicker
-        open={openCategoryPicker}
-        value={selectedCategory}
-        items={categories}
-        setOpen={setOpenCategoryPicker}
-        setValue={setSelectedCategory}
-        setItems={setCategories}
-        placeholder="Select a category"
-        style={styles.dropdown}
-        containerStyle={{ marginBottom: 20 }}
-        dropDownContainerStyle={styles.dropdownContainer}
-      />
+      {/* Category */}
+      {isEditMode ? (
+        <DropDownPicker
+          open={openCategoryPicker}
+          value={selectedCategory}
+          items={categories}
+          setOpen={setOpenCategoryPicker}
+          setValue={setSelectedCategory}
+          setItems={setCategories}
+          placeholder="Select a category"
+          style={styles.dropdown}
+          containerStyle={{ marginBottom: 20 }}
+          dropDownContainerStyle={styles.dropdownContainer}
+        />
+      ) : (
+        <View style={styles.fieldContainer}>
+          <Text style={styles.label}>Category:</Text>
+          <Text style={styles.value}>{selectedCategory}</Text>
+        </View>
+      )}
 
-      {/* Date Picker with DateTimePickerModal */}
-      <View style={styles.datePickerButton} onTouchEnd={showDatePicker}>
-        <Text style={styles.dateText}>Date: {date.toDateString()}</Text>
-      </View>
+      {/* Date */}
+      {isEditMode ? (
+        <View style={styles.datePickerButton} onTouchEnd={showDatePicker}>
+          <Text style={styles.dateText}>Date: {date.toDateString()}</Text>
+        </View>
+      ) : (
+        <View style={styles.fieldContainer}>
+          <Text style={styles.label}>Date:</Text>
+          <Text style={styles.value}>{date.toDateString()}</Text>
+        </View>
+      )}
       <DateTimePickerModal
         isVisible={isDatePickerVisible}
         mode="date"
@@ -104,25 +135,34 @@ export default function ItemEditor({ navigation, route }) {
         onCancel={hideDatePicker}
       />
 
-      {/* Notification Checkbox */}
-      <View style={styles.checkboxContainer}>
-        <Checkbox
-          value={isNotificationEnabled}
-          onValueChange={setIsNotificationEnabled}
-          style={styles.checkbox}
-        />
-        <Text style={styles.checkboxLabel}>Enable Notification</Text>
-      </View>
+      {/* Notification */}
+      {isEditMode ? (
+        <View style={styles.checkboxContainer}>
+          <Checkbox
+            value={isNotificationEnabled}
+            onValueChange={setIsNotificationEnabled}
+            style={styles.checkbox}
+          />
+          <Text style={styles.checkboxLabel}>Enable Notification</Text>
+        </View>
+      ) : (
+        <View style={styles.fieldContainer}>
+          <Text style={styles.label}>Enable Notification:</Text>
+          <Checkbox value={isNotificationEnabled} disabled />
+        </View>
+      )}
 
       {/* Save and Cancel Buttons */}
-      <View style={styles.buttonContainer}>
-        <View style={styles.cancelButton} onTouchEnd={handleCancel}>
-          <Text style={styles.buttonText}>Cancel</Text>
+      {isEditMode && (
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+            <Text style={styles.buttonText}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            <Text style={styles.buttonText}>Save</Text>
+          </TouchableOpacity>
         </View>
-        <View style={styles.saveButton} onTouchEnd={handleSave}>
-          <Text style={styles.buttonText}>Save</Text>
-        </View>
-      </View>
+      )}
     </View>
   );
 }
@@ -132,6 +172,24 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: "#fff",
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  backButton: {
+    fontSize: 16,
+    color: "#000",
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  editButton: {
+    fontSize: 16,
+    color: "#007BFF",
   },
   imageContainer: {
     alignSelf: "center",
@@ -159,15 +217,30 @@ const styles = StyleSheet.create({
   dropdownContainer: {
     backgroundColor: "#f0f0f0",
   },
+  fieldContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  value: {
+    fontSize: 16,
+  },
   datePickerButton: {
     padding: 15,
     backgroundColor: "#f0f0f0",
     borderRadius: 5,
     marginBottom: 20,
     alignItems: "flex-start",
-    width: '100%', // Set width to 100% to match DropDownPicker width
-    borderColor: "#000", // Set border color to black
-    borderWidth: 1, // Set border width
+    width: "100%",
+    borderColor: "#000",
+    borderWidth: 1,
   },
   dateText: {
     fontSize: 14,
@@ -187,7 +260,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 100,
+    marginTop: 30,
   },
   cancelButton: {
     flex: 1,

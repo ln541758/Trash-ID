@@ -43,7 +43,12 @@ const ItemList = ({ navigation, route }) => {
   function renderItem({ item }) {
     return (
       <TouchableOpacity
-        onPress={() => navigation.navigate("ItemInfo", { itemId: item.id })}
+        onPress={() =>
+          navigation.navigate("ItemEditor", {
+            itemId: item.id,
+            isEditMode: false,
+          })
+        }
         style={styles.itemContainer}
       >
         <Image source={item.source} style={styles.itemImage} />
@@ -54,7 +59,9 @@ const ItemList = ({ navigation, route }) => {
         <View style={styles.actionButtons}>
           <TouchableOpacity
             onPress={() =>
-              navigation.navigate("ItemEditor", { itemId: item.id })
+              navigation.navigate("ItemEditor", {
+                isEditMode: true, 
+              })
             }
             style={styles.addButton}
           >
