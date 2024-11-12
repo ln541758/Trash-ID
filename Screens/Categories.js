@@ -15,7 +15,7 @@ export default function Categories({ navigation }) {
   }, [navigation]);
 
   function handleNotification() {
-    navigation.navigate("Notification");
+    navigation.navigate("Notifications");
   }
 
   return (
