@@ -1,14 +1,5 @@
-import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  Image,
-  FlatList,
-  TextInput,
-} from "react-native";
-import { useState } from "react";
+import React from "react";
+import { StyleSheet, Text, View, TouchableOpacity, TextInput } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 import Categories from "./Screens/Categories";
@@ -16,6 +7,9 @@ import ItemInfo from "./Screens/ItemInfo";
 import Notifications from "./Screens/Notifications";
 import Home from "./Screens/Home";
 import ItemEditor from "./Screens/ItemEditor";
+import ItemList from "./Screens/ItemList";
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 const Stack = createStackNavigator();
 
@@ -29,30 +23,33 @@ const App = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen name="Catalog" component={Categories} />
-        <Stack.Screen 
-          name="ItemList" 
-          component={ItemList} 
+        <Stack.Screen
+          name="ItemList"
+          component={ItemList}
           options={({ route, navigation }) => ({
             headerTitle: () => (
               <View style={styles.headerTitleContainer}>
-                <Text style={styles.headerTitle}>{route.params?.trashKeyWords || "Recycling"}</Text>
-                <TextInput
-                  style={styles.searchBar}
-                  placeholder="Search"
-                  onChangeText={(text) => navigation.setParams({ searchQuery: text })}
-                />
+                <Text style={styles.headerTitle}>
+                  {route.params?.trashKeyWords || "Recycling"}
+                </Text>
               </View>
             ),
             headerRight: () => (
               <View style={styles.headerRightContainer}>
-                <TouchableOpacity onPress={() => navigation.navigate("ItemEditor")} style={styles.addButton}>
-                  <Text style={styles.addButtonText}>Add Item</Text>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("ItemEditor")}
+                  style={styles.addButton}
+                >
+                  <FontAwesome6 name="add" size={24} color="black" />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => {}} style={styles.headerButton}>
-                  <Text style={styles.headerButtonText}>Sort</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate("Notifications")} style={styles.headerButton}>
-                  <Text style={styles.headerButtonText}>Notifications</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    const isAscending = route.params?.isAscending ?? true;
+                    navigation.setParams({ isAscending: !isAscending });
+                  }}
+                  style={styles.addButton}
+                >
+                  <MaterialIcons name="sort" size={24} color="black" />
                 </TouchableOpacity>
               </View>
             ),
@@ -66,111 +63,32 @@ const App = () => {
   );
 };
 
-const ItemList = ({ navigation, route }) => {
-  const [items, setItems] = useState([
-    { id: "1", source: require("./assets/bottle.jpg"), name: "Tetra" },
-    { id: "2", source: require("./assets/bottle.jpg"), name: "Plastic" },
-    { id: "3", source: require("./assets/bottle.jpg"), name: "Glass" },
-  ]);
-  const searchQuery = route.params?.searchQuery || "";
-
-  function renderItem({ item }) {
-    return (
-      <TouchableOpacity
-        onPress={() => navigation.navigate("ItemInfo")}
-        style={styles.itemContainer}
-      >
-        <Image source={item.source} style={styles.itemImage} />
-        <View style={styles.itemInfo}>
-          <Text style={styles.itemName}>{item.name}</Text>
-        </View>
-      </TouchableOpacity>
-    );
-  }
-
-  return (
-    <View style={styles.container}>
-      {/* Item List */}
-      <FlatList
-        data={items.filter((item) =>
-          item.name.toLowerCase().includes(searchQuery.toLowerCase())
-        )}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
-    </View>
-  );
-};
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: "#fff",
-  },
   headerTitleContainer: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
+    flexDirection: "column",
+    alignItems: "flex-start",
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 4,
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  searchBar: {
+    marginTop: 4, 
+    borderColor: "#ccc",
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 5,
+    width: 200,
+    backgroundColor: "#fff",
   },
   headerRightContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginRight: 10,
   },
-  searchBar: {
-    borderColor: '#ccc',
-    borderWidth: 1,
-    padding: 8,
-    borderRadius: 5,
-    width: 200,
-  },
-  headerButton: {
-    padding: 10,
-    backgroundColor: "#ccc",
-    borderRadius: 5,
-    marginLeft: 10,
-  },
-  headerButtonText: {
-    fontSize: 16,
-    color: "#000",
-  },
   addButton: {
-    backgroundColor: 'green',
     padding: 10,
-    borderRadius: 5,
-    marginLeft: 10,
-  },
-  addButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  itemContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-  },
-  itemImage: {
-    width: 100,
-    height: 100,
-    resizeMode: "cover",
-  },
-  itemInfo: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  itemName: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  separator: {
-    height: 1,
-    backgroundColor: "#ccc",
   },
 });
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,119 +7,37 @@ import {
   Image,
   FlatList,
   TextInput,
+  Pressable,
 } from "react-native";
-import { useState } from "react";
-import { createStackNavigator } from "@react-navigation/stack";
-import { NavigationContainer } from "@react-navigation/native";
-import Categories from "./Screens/Categories";
-import ItemInfo from "./Screens/ItemInfo";
-import Notifications from "./Screens/Notifications";
-import Home from "./Screens/Home";
-import ItemEditor from "./Screens/ItemEditor";
+import { items as importedItems } from "../Components/Items";
+import { Entypo } from "@expo/vector-icons";
 
-const Stack = createStackNavigator();
-
-const App = () => {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="Home"
-          component={Home}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen name="Catalog" component={Categories} />
-        <Stack.Screen 
-          name="ItemList" 
-          component={ItemList} 
-          options={({ route, navigation }) => ({
-            headerTitle: () => (
-              <View style={styles.headerTitleContainer}>
-                <Text style={styles.headerTitle}>{route.params?.trashKeyWords || "Recycling"}</Text>
-                <TextInput
-                  style={styles.searchBar}
-                  placeholder="Search"
-                  onChangeText={(text) => navigation.setParams({ searchQuery: text })}
-                />
-              </View>
-            ),
-            headerRight: () => (
-              <View style={styles.headerRightContainer}>
-                <TouchableOpacity onPress={() => navigation.navigate("ItemEditor")} style={styles.addButton}>
-                  <Text style={styles.addButtonText}>Add Item</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => {
-                  const isAscending = route.params?.isAscending || true;
-                  const sortedItems = [...items].sort((a, b) => isAscending ? a.trash[0].trashType.localeCompare(b.trash[0].trashType) : b.trash[0].trashType.localeCompare(a.trash[0].trashType));
-                  setItems(sortedItems);
-                  navigation.setParams({ isAscending: !isAscending });
-                }} style={styles.headerButton}>
-                  <Text style={styles.headerButtonText}>Sort</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate("Notifications")} style={styles.headerButton}>
-                  <Text style={styles.headerButtonText}>Notifications</Text>
-                </TouchableOpacity>
-              </View>
-            ),
-          })}
-        />
-        <Stack.Screen name="ItemInfo" component={ItemInfo} />
-        <Stack.Screen name="ItemEditor" component={ItemEditor} />
-        <Stack.Screen name="Notifications" component={Notifications} />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
-};
 
 const ItemList = ({ navigation, route }) => {
-  const [items, setItems] = useState([
-    {
-      email: "user1@example.com",
-      username: "user1",
-      phone: "1234567890",
-      id: "1",
-      address: { city: "City1", street: "Street1", zip: "12345" },
-      geo: { lat: "40.7128N", long: "74.0060W" },
-      trash: [
-        {
-          trashID: "t1",
-          trashType: "recyclable",
-          trashDate: "2024-11-10",
-        },
-      ],
-    },
-    {
-      email: "user2@example.com",
-      username: "user2",
-      phone: "0987654321",
-      id: "2",
-      address: { city: "City2", street: "Street2", zip: "54321" },
-      geo: { lat: "34.0522N", long: "118.2437W" },
-      trash: [
-        {
-          trashID: "t2",
-          trashType: "recyclable",
-          trashDate: "2024-11-11",
-        },
-      ],
-    },
-    {
-      email: "user3@example.com",
-      username: "user3",
-      phone: "1122334455",
-      id: "3",
-      address: { city: "City3", street: "Street3", zip: "67890" },
-      geo: { lat: "51.5074N", long: "0.1278W" },
-      trash: [
-        {
-          trashID: "t3",
-          trashType: "recyclable",
-          trashDate: "2024-11-12",
-        },
-      ],
-    },
-  ]);
+  const [items, setItems] = useState(importedItems);
+
   const searchQuery = route.params?.searchQuery || "";
+  const isAscending = route.params?.isAscending ?? true;
+
+  useEffect(() => {
+    let filteredItems = importedItems;
+
+    if (searchQuery) {
+      filteredItems = filteredItems.filter((item) =>
+        item.trash[0].trashType
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase())
+      );
+    }
+
+    filteredItems = filteredItems.sort((a, b) =>
+      isAscending
+        ? a.trash[0].trashType.localeCompare(b.trash[0].trashType)
+        : b.trash[0].trashType.localeCompare(a.trash[0].trashType)
+    );
+
+    setItems(filteredItems);
+  }, [searchQuery, isAscending]);
 
   function renderItem({ item }) {
     return (
@@ -135,13 +53,28 @@ const ItemList = ({ navigation, route }) => {
     );
   }
 
+  function handleNotification() {
+    navigation.navigate("Notifications");
+  }
+
   return (
     <View style={styles.container}>
-      {/* Item List */}
+      <View style={styles.headerContainer}>
+        <TextInput
+          style={styles.searchBar}
+          placeholder="Search"
+          onChangeText={(text) => navigation.setParams({ searchQuery: text })}
+        />
+        <Pressable
+          onPress={handleNotification}
+          style={styles.notificationButton}
+        >
+          <Entypo name="notification" size={24} color="black" />
+        </Pressable>
+      </View>
+
       <FlatList
-        data={items.filter((item) =>
-          item.trash[0].trashType.toLowerCase().includes(searchQuery.toLowerCase())
-        )}
+        data={items}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -153,49 +86,26 @@ const ItemList = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
     backgroundColor: "#fff",
   },
-  headerTitleContainer: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  headerRightContainer: {
+  headerContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginRight: 10,
+    padding: 10,
+    backgroundColor: "#fff",
   },
   searchBar: {
-    borderColor: '#ccc',
+    flex: 1,
+    borderColor: "#ccc",
     borderWidth: 1,
+    padding: 9,
+    borderRadius: 5,
+    backgroundColor: "#fff",
+    marginRight: 10,
+    marginLeft: 10,
+  },
+  notificationButton: {
     padding: 8,
-    borderRadius: 5,
-    width: 200,
-  },
-  headerButton: {
-    padding: 10,
-    backgroundColor: "#ccc",
-    borderRadius: 5,
-    marginLeft: 10,
-  },
-  headerButtonText: {
-    fontSize: 16,
-    color: "#000",
-  },
-  addButton: {
-    backgroundColor: 'green',
-    padding: 10,
-    borderRadius: 5,
-    marginLeft: 10,
-  },
-  addButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
   },
   itemContainer: {
     flexDirection: "row",
@@ -206,10 +116,12 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     resizeMode: "cover",
+    marginLeft: 20,
+    borderRadius: 5,
   },
   itemInfo: {
     flex: 1,
-    marginLeft: 10,
+    marginLeft: 40,
   },
   itemName: {
     fontSize: 18,
@@ -221,4 +133,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default ItemList;
