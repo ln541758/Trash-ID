@@ -3,7 +3,6 @@ import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 import Categories from "./Screens/Categories";
-import ItemInfo from "./Screens/ItemInfo";
 import Notifications from "./Screens/Notifications";
 import Home from "./Screens/Home";
 import ItemEditor from "./Screens/ItemEditor";
@@ -22,7 +21,7 @@ const App = () => {
           component={Home}
           options={{ headerShown: false }}
         />
-        <Stack.Screen name="Catalog" component={Categories} />
+        <Stack.Screen name="Categories" component={Categories} />
         <Stack.Screen
           name="ItemList"
           component={ItemList}
@@ -54,10 +53,6 @@ const App = () => {
               </View>
             ),
           })}
-        />
-        <Stack.Screen
-          name="ItemInfo"
-          component={ItemInfo}
         />
         <Stack.Screen
           name="ItemEditor"
