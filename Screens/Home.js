@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Camera from "./Camera";
-import Catalog from "./Catalog";
+import Categories from "./Categories";
 import Map from "./Map";
 
 export default function Home({ navigation }) {
@@ -13,7 +13,7 @@ export default function Home({ navigation }) {
         tabBarLabel: route.name,
       })}
     >
-      <Tab.Screen name="Catalog" component={Catalog} />
+      <Tab.Screen name="Catalog" component={Categories} />
       <Tab.Screen name="Camera" component={Camera} />
       <Tab.Screen name="Map" component={Map} />
     </Tab.Navigator>

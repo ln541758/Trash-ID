@@ -3,7 +3,7 @@ import React from "react";
 import { useEffect } from "react";
 import { Entypo } from "@expo/vector-icons";
 
-export default function Catalog({ navigation }) {
+export default function Categories({ navigation }) {
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (

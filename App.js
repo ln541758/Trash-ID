@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
-import Catalog from "./Screens/Catalog";
+import Categories from "./Screens/Categories";
 import ItemList from "./Screens/ItemList";
 import ItemInfo from "./Screens/ItemInfo";
 import Notification from "./Screens/Notification";
@@ -18,7 +18,7 @@ export default function App() {
           component={Home}
           options={{ headerShown: false }}
         />
-        <Stack.Screen name="Catalog" component={Catalog} />
+        <Stack.Screen name="Catalog" component={Categories} />
         <Stack.Screen name="ItemList" component={ItemList} />
         <Stack.Screen name="ItemInfo" component={ItemInfo} />
         <Stack.Screen name="ItemEditor" component={ItemEditor} />
