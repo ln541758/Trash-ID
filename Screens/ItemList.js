@@ -11,7 +11,8 @@ import {
 } from "react-native";
 import { items as importedItems } from "../Components/Items";
 import { Entypo } from "@expo/vector-icons";
-
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 const ItemList = ({ navigation, route }) => {
   const [items, setItems] = useState(importedItems);
@@ -42,12 +43,34 @@ const ItemList = ({ navigation, route }) => {
   function renderItem({ item }) {
     return (
       <TouchableOpacity
-        onPress={() => navigation.navigate("ItemInfo")}
+        onPress={() => navigation.navigate("ItemInfo", { itemId: item.id })}
         style={styles.itemContainer}
       >
         <Image source={item.source} style={styles.itemImage} />
         <View style={styles.itemInfo}>
           <Text style={styles.itemName}>{item.trash[0].trashType}</Text>
+        </View>
+
+        <View style={styles.actionButtons}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("ItemEditor", { itemId: item.id })
+            }
+            style={styles.addButton}
+          >
+            <FontAwesome6 name="edit" size={24} color="black" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => {
+              setItems((prevItems) =>
+                prevItems.filter((currentItem) => currentItem.id !== item.id)
+              );
+            }}
+          >
+            <AntDesign name="delete" size={24} color="black" />
+          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     );
@@ -105,27 +128,40 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   notificationButton: {
-    padding: 8,
+    marginRight: 10,
   },
   itemContainer: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 8,
+    marginBottom: 8,
   },
   itemImage: {
     width: 100,
     height: 100,
     resizeMode: "cover",
-    marginLeft: 20,
     borderRadius: 5,
   },
   itemInfo: {
     flex: 1,
-    marginLeft: 40,
+    marginLeft: 20,
   },
   itemName: {
     fontSize: 18,
     fontWeight: "bold",
+  },
+  actionButtons: {
+    flexDirection: "column",
+    justifyContent: "space-between",
+  },
+  addButton: {
+    backgroundColor: "#fff",
+    marginHorizontal: 5,
+    marginVertical: 10,
+    borderRadius: 5,
   },
   separator: {
     height: 1,

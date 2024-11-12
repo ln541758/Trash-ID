@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
   },
   searchBar: {
