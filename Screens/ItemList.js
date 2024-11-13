@@ -60,7 +60,8 @@ const ItemList = ({ navigation, route }) => {
           <TouchableOpacity
             onPress={() =>
               navigation.navigate("ItemEditor", {
-                isEditMode: true, 
+                itemId: item.id,
+                isEditMode: true
               })
             }
             style={styles.addButton}
