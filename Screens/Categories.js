@@ -4,31 +4,15 @@ import {
   View,
   Image,
   TouchableOpacity,
-  Pressable,
-  TextInput,
 } from "react-native";
 import React, { useEffect } from "react";
-import { Entypo } from "@expo/vector-icons";
+
 
 export default function Categories({ navigation }) {
-  function handleNotification() {
-    navigation.navigate("Notifications");
-  }
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchBar}
-          placeholder="Search"
-          placeholderTextColor="#aaa"
-        />
-        <Pressable onPress={handleNotification} style={styles.notificationButton}>
-          <Entypo name="notification" size={24} color="black" />
-        </Pressable>
-      </View>
-
-      {/* 分类网格 */}
+      {/* styled in grid */}
       <View style={styles.grid}>
         <TouchableOpacity
           style={styles.imageContainer}
@@ -62,13 +46,13 @@ export default function Categories({ navigation }) {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.imageContainer}
-          onPress={() => navigation.navigate("ItemList", { category: "Food" })}
+          onPress={() => navigation.navigate("ItemList", { category: "Garbage" })}
         >
           <Image
             source={require("../assets/Residual.webp")}
             style={styles.image}
           />
-          <Text style={styles.imageLabel}>Food</Text>
+          <Text style={styles.imageLabel}>Garbage</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -95,9 +79,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: "#fff",
     marginRight: 10,
-  },
-  notificationButton: {
-    padding: 10,
   },
   grid: {
     flexDirection: "row",

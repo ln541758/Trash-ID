@@ -8,24 +8,77 @@ import {
   FlatList,
   TextInput,
   Pressable,
+  Alert,
 } from "react-native";
-import { items as importedItems } from "../Components/Items";
 import { Entypo } from "@expo/vector-icons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { database } from "../Firestore/firestoreSetup";
+import { collection, onSnapshot } from "firebase/firestore";
+import { deleteDB } from "../Firestore/firestoreHelper";
+
 
 const ItemList = ({ navigation, route }) => {
-  const [items, setItems] = useState(importedItems);
+  const [items, setItems] = useState([]);
+  const categoryImage = {
+    "Recycling": require("../assets/Recyclable.jpg"),
+    "Organic": require("../assets/Organic.jpg"),
+    "Hazardous": require("../assets/Hazardous.jpg"),
+    "Garbage": require("../assets/Garbage.jpg"),
+  }
 
   const searchQuery = route.params?.searchQuery || "";
   const isAscending = route.params?.isAscending ?? true;
 
+  // Function to delete item
+  function handleDelete(id) {
+    Alert.alert(
+      "Delete Item",
+      "Are you sure you want to delete this item?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          onPress: async () => {
+            await deleteDB(id, "trashData");
+          },
+        },
+      ],
+
+    );
+  };
+
+
+  // add listener to fetch data from firestore
   useEffect(() => {
-    let filteredItems = importedItems;
+    const unsubscribe = onSnapshot(collection(database, "trashData"),
+    (snapshot) => {
+      let newArr = [];
+      let newEntry = {};
+      snapshot.forEach((doc) => {
+        if (doc.data().trashCategory == route.params.category) {
+        newEntry = doc.data();
+        newEntry.id = doc.id;
+        newArr.push(newEntry);
+        }
+      });
+      setItems(newArr);
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+
+  useEffect(() => {
+    let filteredItems = items;
 
     if (searchQuery) {
       filteredItems = filteredItems.filter((item) =>
-        item.trash[0].trashType
+        item.trashType
           .toLowerCase()
           .includes(searchQuery.toLowerCase())
       );
@@ -33,8 +86,8 @@ const ItemList = ({ navigation, route }) => {
 
     filteredItems = filteredItems.sort((a, b) =>
       isAscending
-        ? a.trash[0].trashType.localeCompare(b.trash[0].trashType)
-        : b.trash[0].trashType.localeCompare(a.trash[0].trashType)
+        ? a.trashType.localeCompare(b.trashType)
+        : b.trashType.localeCompare(a.trashType)
     );
 
     setItems(filteredItems);
@@ -45,22 +98,26 @@ const ItemList = ({ navigation, route }) => {
       <TouchableOpacity
         onPress={() =>
           navigation.navigate("ItemEditor", {
-            itemId: item.id,
+            itemObj: item,
             isEditMode: false,
+            category: route.params.category,
           })
         }
         style={styles.itemContainer}
       >
-        <Image source={item.source} style={styles.itemImage} />
+        <Image source={categoryImage[route.params.category]
+          || require('../assets/Recyclable.jpg')} style={styles.itemImage} />
         <View style={styles.itemInfo}>
-          <Text style={styles.itemName}>{item.trash[0].trashType}</Text>
+          <Text style={styles.itemName}>{item.trashType}</Text>
         </View>
 
         <View style={styles.actionButtons}>
           <TouchableOpacity
             onPress={() =>
               navigation.navigate("ItemEditor", {
-                isEditMode: true, 
+                itemObj: item,
+                isEditMode: true,
+                category: route.params.category,
               })
             }
             style={styles.addButton}
@@ -70,10 +127,7 @@ const ItemList = ({ navigation, route }) => {
 
           <TouchableOpacity
             style={styles.addButton}
-            onPress={() => {
-              setItems((prevItems) =>
-                prevItems.filter((currentItem) => currentItem.id !== item.id)
-              );
+            onPress={() => {handleDelete(item.id)
             }}
           >
             <AntDesign name="delete" size={24} color="black" />
