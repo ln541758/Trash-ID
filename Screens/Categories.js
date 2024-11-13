@@ -17,18 +17,8 @@ export default function Categories({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchBar}
-          placeholder="Search"
-          placeholderTextColor="#aaa"
-        />
-        <Pressable onPress={handleNotification} style={styles.notificationButton}>
-          <Entypo name="notification" size={24} color="black" />
-        </Pressable>
-      </View>
 
-      {/* 分类网格 */}
+      {/* styled in grid */}
       <View style={styles.grid}>
         <TouchableOpacity
           style={styles.imageContainer}

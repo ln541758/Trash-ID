@@ -60,7 +60,7 @@ const App = () => {
           options={({ route, navigation }) => ({
             headerTitle: "Edit Item",
             headerRight: () =>
-              !route.params?.isEditMode ? ( // 只在不是编辑模式的时候显示编辑按钮
+              !route.params?.isEditMode ? ( // If not in edit mode, show the Edit button
                 <TouchableOpacity
                   onPress={() => {
                     navigation.setParams({ isEditMode: true });
