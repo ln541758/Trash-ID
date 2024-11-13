@@ -14,6 +14,7 @@ export default function ItemEditor({ navigation, route }) {
   const [categoryKey, setCategoryKey] = useState(route.params.category);
   const isEditMode = route.params?.isEditMode ?? true;
   const currentItem = route.params.itemObj;
+  const [response, requestPermission] = ImagePicker.useCameraPermissions();
   const [image, setImage] = useState(isEditMode ? "" : currentItem?.source);
   const [selectedCategory, setSelectedCategory] = useState(currentItem?.trashType);
   const [openCategoryPicker, setOpenCategoryPicker] = useState(false);
@@ -31,6 +32,14 @@ export default function ItemEditor({ navigation, route }) {
     { label: "Garbage", value: "Garbage" },
   ]);
 
+  async function verifyPermission() {
+    if (response.granted) {
+        return true;
+    }
+    const permission = await requestPermission();
+    return permission.granted;
+}
+
   useEffect(() => {
     const fetchData = async () => {
       const keyWordArr = await getAllDocs("trashKey", categoryKey);
@@ -42,15 +51,26 @@ export default function ItemEditor({ navigation, route }) {
   // Function to handle opening the camera
   const pickImage = async () => {
     if (!isEditMode) return;
+    const hasPermission = await verifyPermission();
+            if (!hasPermission) {
+                Alert.alert("Permission required",
+                    "Please grant permission to access the camera",
+                    [{ text: "OK" }]);
+                return;
+            }
+    try {
     let result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
       quality: 0.1,
     });
+    console.log(result);
 
     if (!result.canceled) {
       setImage(result.assets[0].uri);
+    }} catch (e) {
+        console.error("Error reading image: ", e);
     }
   };
 
@@ -87,7 +107,6 @@ export default function ItemEditor({ navigation, route }) {
     if (currentItem) {
       await updateDB("trashData", currentItem.id, updatedItem);
     } else {
-      console.log(updatedItem);
       await writeToDB("trashData", updatedItem);
     }
     // passing the category to the next screen
@@ -120,7 +139,7 @@ export default function ItemEditor({ navigation, route }) {
         onTouchEnd={isEditMode ? pickImage : null}
       >
         {image ? (
-          <Image source={image} style={styles.image} />
+          <Image source={{uri: image}} style={styles.image} />
         ) : (
           isEditMode && (
             <View style={styles.placeholderImage}>
