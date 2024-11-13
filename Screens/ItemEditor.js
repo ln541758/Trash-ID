@@ -1,31 +1,43 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
+import {
+  StyleSheet, Text, View,
+  TouchableOpacity, Image, Alert
+} from "react-native";
 import { Entypo } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import DropDownPicker from "react-native-dropdown-picker";
 import Checkbox from "expo-checkbox";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { getAllDocs } from "../Firestore/firestoreHelper";
+import { getAllDocs, updateDB, writeToDB } from "../Firestore/firestoreHelper";
 
 export default function ItemEditor({ navigation, route }) {
+  const [categoryKey, setCategoryKey] = useState(route.params.category);
   const isEditMode = route.params?.isEditMode ?? true;
   const currentItem = route.params.itemObj;
   const [image, setImage] = useState(isEditMode ? "" : currentItem?.source);
   const [selectedCategory, setSelectedCategory] = useState(currentItem?.trashType);
   const [openCategoryPicker, setOpenCategoryPicker] = useState(false);
+  const [openTypePicker, setOpenTypePicker] = useState(false);
   const [categories, setCategories] = useState([]);
   const [date, setDate] = useState(currentItem?.trashDate);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [isNotificationEnabled, setIsNotificationEnabled] = useState(currentItem?.notification);
+  const [isNotificationEnabled,
+    setIsNotificationEnabled] = useState(currentItem
+      ? currentItem.notification : false);
+  const [trashKey, setTrashKey] = useState([
+    { label: "Recycling", value: "Recycling" },
+    { label: "Organic", value: "Organic" },
+    { label: "Hazardous", value: "Hazardous" },
+    { label: "Garbage", value: "Garbage" },
+  ]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const keyWordArr = await getAllDocs("trashKey", "Recycling");
+      const keyWordArr = await getAllDocs("trashKey", categoryKey);
       setCategories(keyWordArr);
     };
-
     fetchData();
-  }, []);
+  }, [categoryKey]);
 
   // Function to handle opening the camera
   const pickImage = async () => {
@@ -56,28 +68,46 @@ export default function ItemEditor({ navigation, route }) {
 
   // Function to handle date change
   const handleConfirm = (selectedDate) => {
-    setDate(selectedDate);
+    // Use toISOString and slice to get only the date part (YYYY-MM-DD)
+    const formattedDate = selectedDate.toISOString().slice(0, 10);
+    setDate(formattedDate);
     hideDatePicker();
   };
 
   // Function to handle Save button click
-  const handleSave = () => {
+  const handleSave = async () => {
     // Save the data to the database
     let updatedItem = {
-      source: image,
+      source: image ? image : '',
       trashType: selectedCategory,
       trashDate: date,
       notification: isNotificationEnabled,
-      trashCategory: route.params.category,};
-
-
-
-    navigation.navigate("ItemList");
+      trashCategory: categoryKey,
+    };
+    if (currentItem) {
+      await updateDB("trashData", currentItem.id, updatedItem);
+    } else {
+      console.log(updatedItem);
+      await writeToDB("trashData", updatedItem);
+    }
+    // passing the category to the next screen
+    navigation.navigate("ItemList", { category: categoryKey });
   };
 
   // Function to handle Cancel button click
   const handleCancel = () => {
-    navigation.goBack();
+    Alert.alert("Cancel", "Are you sure you want to give up editing?", [
+      {
+        text: "No",
+        style: "cancel",
+      },
+      {
+        text: "Yes",
+        onPress: () => {
+          navigation.goBack();
+        },
+      },
+    ]);
   };
 
 
@@ -100,7 +130,31 @@ export default function ItemEditor({ navigation, route }) {
         )}
       </View>
 
-      {/* Category */}
+      {/* Trash Type */}
+      {isEditMode ? (
+        <DropDownPicker
+          open={openTypePicker}
+          value={categoryKey}
+          items={trashKey}
+          setOpen={setOpenTypePicker}
+          setValue={setCategoryKey}
+          setItems={setTrashKey}
+          placeholder="Select a type"
+          style={styles.dropdown}
+          containerStyle={{
+            zIndex: openTypePicker ? 2 : 1,
+            marginBottom: 20,
+          }}
+          dropDownContainerStyle={styles.dropdownContainer}
+        />
+      ) : (
+        <View style={styles.fieldContainer}>
+          <Text style={styles.label}>Trash Type:</Text>
+          <Text style={styles.value}>{selectedCategory}</Text>
+        </View>
+      )}
+
+      {/* Category Dropdown  */}
       {isEditMode ? (
         <DropDownPicker
           open={openCategoryPicker}
@@ -111,7 +165,10 @@ export default function ItemEditor({ navigation, route }) {
           setItems={setCategories}
           placeholder="Select a category"
           style={styles.dropdown}
-          containerStyle={{ marginBottom: 20 }}
+          containerStyle={{
+            zIndex: openCategoryPicker ? 2 : 1,
+            marginBottom: 20,
+          }}
           dropDownContainerStyle={styles.dropdownContainer}
         />
       ) : (
@@ -120,6 +177,8 @@ export default function ItemEditor({ navigation, route }) {
           <Text style={styles.value}>{selectedCategory}</Text>
         </View>
       )}
+
+
 
       {/* Date */}
       {isEditMode ? (

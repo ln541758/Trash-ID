@@ -4,20 +4,14 @@ import {
   View,
   Image,
   TouchableOpacity,
-  Pressable,
-  TextInput,
 } from "react-native";
 import React, { useEffect } from "react";
-import { Entypo } from "@expo/vector-icons";
+
 
 export default function Categories({ navigation }) {
-  function handleNotification() {
-    navigation.navigate("Notifications");
-  }
 
   return (
     <View style={styles.container}>
-
       {/* styled in grid */}
       <View style={styles.grid}>
         <TouchableOpacity
@@ -85,9 +79,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: "#fff",
     marginRight: 10,
-  },
-  notificationButton: {
-    padding: 10,
   },
   grid: {
     flexDirection: "row",

@@ -1,7 +1,7 @@
 import {
     addDoc, collection,
     deleteDoc, doc, getDocs,
-    setDoc
+    setDoc, updateDoc,
 } from "firebase/firestore";
 import { database } from "./firestoreSetup";
 
@@ -42,5 +42,13 @@ export async function getAllDocs(collectionName, fieldName) {
     } catch (e) {
         console.error("Error getting documents: ", e);
         return [];
+    }
+}
+
+export async function updateDB(collectionName, docId, data) {
+    try {
+        const docRef = await updateDoc(doc(database, collectionName, docId), data);
+    } catch (e) {
+        console.error("Error updating document: ", e);
     }
 }
