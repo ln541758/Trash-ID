@@ -20,6 +20,12 @@ import { deleteDB } from "../Firestore/firestoreHelper";
 
 const ItemList = ({ navigation, route }) => {
   const [items, setItems] = useState([]);
+  const categoryImage = {
+    "Recycling": require("../assets/Recyclable.jpg"),
+    "Organic": require("../assets/Organic.jpg"),
+    "Hazardous": require("../assets/Hazardous.jpg"),
+    "Garbage": require("../assets/Garbage.jpg"),
+  }
 
   const searchQuery = route.params?.searchQuery || "";
   const isAscending = route.params?.isAscending ?? true;
@@ -99,7 +105,8 @@ const ItemList = ({ navigation, route }) => {
         }
         style={styles.itemContainer}
       >
-       {item.source && <Image source={item.source} style={styles.itemImage} />}
+        <Image source={categoryImage[route.params.category]
+          || require('../assets/Recyclable.jpg')} style={styles.itemImage} />
         <View style={styles.itemInfo}>
           <Text style={styles.itemName}>{item.trashType}</Text>
         </View>
