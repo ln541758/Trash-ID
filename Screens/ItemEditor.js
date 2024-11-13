@@ -70,7 +70,6 @@ export default function ItemEditor({ navigation, route }) {
       aspect: [4, 3],
       quality: 0.1,
     });
-    console.log(result);
 
     if (!result.canceled) {
       setImage(result.assets[0].uri);
@@ -82,11 +81,10 @@ export default function ItemEditor({ navigation, route }) {
   useEffect(() => {
     async function downloadImage() {
       try {
-        console.log("currentItem", currentItem.source);
+
         if (currentItem?.source) {
           const imageRef = ref(storage, currentItem.source);
           const httpsImageURi = await getDownloadURL(imageRef);
-          console.log("httpsImageURi", httpsImageURi);
           setImage(httpsImageURi);
         }
       } catch (err) {
@@ -149,7 +147,6 @@ export default function ItemEditor({ navigation, route }) {
       notification: isNotificationEnabled,
       trashCategory: categoryKey,
     };
-    console.log(updatedItem);
     if (currentItem) {
       await updateDB("trashData", currentItem.id, updatedItem);
     } else {
@@ -215,7 +212,7 @@ export default function ItemEditor({ navigation, route }) {
       ) : (
         <View style={styles.fieldContainer}>
           <Text style={styles.label}>Trash Type:</Text>
-          <Text style={styles.value}>{selectedCategory}</Text>
+          <Text style={styles.value}>{categoryKey}</Text>
         </View>
       )}
 
