@@ -9,23 +9,47 @@ import {
   TextInput,
   Pressable,
 } from "react-native";
-import { items as importedItems } from "../Components/Items";
 import { Entypo } from "@expo/vector-icons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { database } from "../Firestore/firestoreSetup";
+import { collection, onSnapshot } from "firebase/firestore";
+import {app} from "../Firestore/firestoreSetup";
+
 
 const ItemList = ({ navigation, route }) => {
-  const [items, setItems] = useState(importedItems);
+  const [items, setItems] = useState([]);
 
   const searchQuery = route.params?.searchQuery || "";
   const isAscending = route.params?.isAscending ?? true;
 
+  // add listener to fetch data from firestore
   useEffect(() => {
-    let filteredItems = importedItems;
+    const unsubscribe = onSnapshot(collection(database, "trashData"),
+    (snapshot) => {
+      let newArr = [];
+      let newEntry = {};
+      snapshot.forEach((doc) => {
+        if (doc.data().trashCategory == route.params.category) {
+        newEntry = doc.data();
+        newEntry.id = doc.id;
+        newArr.push(newEntry);
+        }
+      });
+      setItems(newArr);
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+
+  useEffect(() => {
+    let filteredItems = items;
 
     if (searchQuery) {
       filteredItems = filteredItems.filter((item) =>
-        item.trash[0].trashType
+        item.trashType
           .toLowerCase()
           .includes(searchQuery.toLowerCase())
       );
@@ -33,8 +57,8 @@ const ItemList = ({ navigation, route }) => {
 
     filteredItems = filteredItems.sort((a, b) =>
       isAscending
-        ? a.trash[0].trashType.localeCompare(b.trash[0].trashType)
-        : b.trash[0].trashType.localeCompare(a.trash[0].trashType)
+        ? a.trashType.localeCompare(b.trashType)
+        : b.trashType.localeCompare(a.trashType)
     );
 
     setItems(filteredItems);
@@ -51,9 +75,9 @@ const ItemList = ({ navigation, route }) => {
         }
         style={styles.itemContainer}
       >
-        <Image source={item.source} style={styles.itemImage} />
+       {item.source && <Image source={item.source} style={styles.itemImage} />}
         <View style={styles.itemInfo}>
-          <Text style={styles.itemName}>{item.trash[0].trashType}</Text>
+          <Text style={styles.itemName}>{item.trashType}</Text>
         </View>
 
         <View style={styles.actionButtons}>
