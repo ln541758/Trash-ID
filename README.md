@@ -67,7 +67,7 @@ Easily create, view, update, or delete information related to your waste managem
 
 #### Collection Station Info: 
 **Fields:**
-
+- collectionStation:
 
 **CRUD Operations:**
 
@@ -90,7 +90,10 @@ Set up the initial project structure and navigation using React Navigation. Comp
 
 
 ## Screenshots
-image
+![Categories](assets/Categories.png)
+![Item List](assets/ItemList.png)
+![Edit Item](assets/EditItem.png)
+
 
 ## Version Control and Collaboration
 All team members have cloned the repository, created their own branches for features, and merged their changes into the main branch after review. Regular commits and pulls ensure that everyone has the latest updates.
