@@ -8,7 +8,10 @@ import * as ImagePicker from "expo-image-picker";
 import DropDownPicker from "react-native-dropdown-picker";
 import Checkbox from "expo-checkbox";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { getAllDocs, updateDB, writeToDB } from "../Firestore/firestoreHelper";
+import { getAllDocs, updateDB, writeToDB} from "../Firestore/firestoreHelper";
+import {ref, uploadBytesResumable, getDownloadURL} from "firebase/storage";
+import {storage} from "../Firestore/firestoreSetup";
+
 
 export default function ItemEditor({ navigation, route }) {
   const [categoryKey, setCategoryKey] = useState(route.params.category);
@@ -32,6 +35,7 @@ export default function ItemEditor({ navigation, route }) {
     { label: "Garbage", value: "Garbage" },
   ]);
 
+  // Function to verify permission
   async function verifyPermission() {
     if (response.granted) {
         return true;
@@ -40,6 +44,7 @@ export default function ItemEditor({ navigation, route }) {
     return permission.granted;
 }
 
+// Fetch the categories for the selected type
   useEffect(() => {
     const fetchData = async () => {
       const keyWordArr = await getAllDocs("trashKey", categoryKey);
@@ -74,6 +79,42 @@ export default function ItemEditor({ navigation, route }) {
     }
   };
 
+  useEffect(() => {
+    async function downloadImage() {
+      try {
+        console.log("currentItem", currentItem.source);
+        if (currentItem?.source) {
+          const imageRef = ref(storage, currentItem.source);
+          const httpsImageURi = await getDownloadURL(imageRef);
+          console.log("httpsImageURi", httpsImageURi);
+          setImage(httpsImageURi);
+        }
+      } catch (err) {
+        console.log("get image ", err);
+      }
+    }
+    downloadImage();
+  }, []);
+
+  // Function to handle image upload
+  async function uploadImage(uri) {
+    try {
+      const imageResponse = await fetch(uri);
+      if (!imageResponse.ok) {
+        throw new Error("Failed to fetch image");
+      }
+      const imageBlob = await imageResponse.blob();
+      // upload image to firebase storage
+      const imageName = uri.substring(uri.lastIndexOf("/") + 1);
+      const imageRef = ref(storage, `images/${imageName}`);
+      const uploadResult = await uploadBytesResumable(imageRef, imageBlob);
+      return uploadResult.metadata.fullPath;
+    } catch (err) {
+      console.log("fetch and upload image ", err);
+    }
+  }
+
+
   // Function to show date picker
   const showDatePicker = () => {
     if (isEditMode) {
@@ -97,13 +138,18 @@ export default function ItemEditor({ navigation, route }) {
   // Function to handle Save button click
   const handleSave = async () => {
     // Save the data to the database
+    let uri = '';
+    if (image) {
+      uri = await uploadImage(image);
+    }
     let updatedItem = {
-      source: image ? image : '',
+      source: image ? uri : '',
       trashType: selectedCategory,
       trashDate: date,
       notification: isNotificationEnabled,
       trashCategory: categoryKey,
     };
+    console.log(updatedItem);
     if (currentItem) {
       await updateDB("trashData", currentItem.id, updatedItem);
     } else {
