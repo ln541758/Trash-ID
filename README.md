@@ -67,7 +67,7 @@ Easily create, view, update, or delete information related to your waste managem
 
 #### Collection Station Info: 
 **Fields:**
-
+- collectionStation:
 
 **CRUD Operations:**
 
