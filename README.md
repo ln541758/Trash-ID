@@ -28,59 +28,90 @@ Easily create, view, update, or delete information related to your waste managem
 
 ### Firestore Collections
 
-#### Items:
-**Fields:**
-- username: Username of the user.<br>
-- email: Email address of the user.<br>
-- phone: Phone number.<br>
-- id: Unique identifier for the user.<br>
-- address: <br>
-    - city: City of the user<br>
-    - street: Street address<br>
-    - zip: Zip code<br>
-- geo:<br>
-    - lat: Latitude<br>
-    - long: Longitude<br>
-- trash: <br>
-    - trashID: Unique identifier for the trash item,<br>
-    - trashType': Type of trash (e.g., Tetra, Plastic, Glass),<br>
-    - trashDate': Date when the trash was recorded<br>
-- source: URI of the image related to the item<br>
+#### Collection 1: trash data:
+- Collection name: trashData <br>
+- Document ID: Auto-generated
+    - **Fields:**<br>
+    - trashID(string): Unique identifier for the trash item,<br>
+    - trashType(string): Type of trash (e.g., Tetra, Plastic, Glass),<br>
+    - trashDate(string): Date when the trash was recorded<br>
+    - source(string): URI of the image related to the item<br>
+- Document ID: userInfo( will be added in authentication component)<br>
+    - **Fields:**<br>
+    - username(string): Username of the user,<br>
+    - email(string): Email address of the user,<br>
+    - phone(string): Phone number,<br>
+    - id(string): Unique identifier for the user,<br>
+    - address:<br>
+        - city(string): City of the user,<br>
+        - street(string): Street address,<br>
+        - zip(string): Zip code,<br>
+    - geo:<br>
+        - lat(string): Latitude,<br>
+        - long(string): Longitude,<br>
 
-**CRUD Operations:**
-- Create: Post new waste item<br>
-- Read: View item info<br>
-- Update: Edit item info<br>
-- Delete: Delete item<br>
-
-#### Trash Key Words: 
-**Fields:**
-- ketTrashWords:<br>
-    - organic: Type of organic trash keywords,<br>
-    - recyclable: Type of recyclable trash keywords,<br>
-    - hazardous: Type of hazardous trash keywords,<br>
-    - justGarbage: Type of general garbage keywords,<br>
-
-**CRUD Operations:**
-- 
+- **CRUD Operations (in collection 1: trashData):**<br>
+    - Create: Post new waste item<br>
+    - Read: View item info<br>
+    - Update: Edit item info<br>
+    - Delete: Delete item<br>
 
 
-#### Collection Station Info: 
-**Fields:**
-- collectionStation:
+#### Collection 2: Trash Key Words: used to categorize trash items
+- Collection name: trashKey <br>
+- Document ID: Auto-generated
+- **Fields:**
+- category(object)<br>
+    - organic(array): Type of organic trash keywords,<br>
+    - recyclable(array): Type of recyclable trash keywords,<br>
+    - hazardous(array): Type of hazardous trash keywords,<br>
+    - justGarbage(array): Type of general garbage keywords,<br>
+- **NO CRUD Operations in collection 2**
 
-**CRUD Operations:**
+#### Collection 3: Recycle Center locations (will be retrieved from the map API):
+- Document ID: Auto-generated
+- **Fields:**
+- recycleLocation(array)<br>
+    - center 1(object):<br>
+        - name(string): Name of the recycling center,<br>
+        - openHour(string): opening and closing time,<br>
+        - geo(object):<br>
+            - lat(string): Latitude,<br>
+            - long(string): Longitude,<br>
+- **NO CRUD Operations in collection 2**
+
+
+#### Collection 4 Schedule of garbage collection trucks:(optional: depending on the availability of the API)
+- Document ID: Auto-generated
+- **Fields:**
+- collectionSchedule(object)<br>
+    - area 1(object):<br>
+        - day(string): Day of the week,<br>
+        - time(string): Time of collection,<br>
+        - range(string): Area of collection,<br>
+    - area 2(object):<br>
+        - day(string): Day of the week,<br>
+        - time(string): Time of collection,<br>
+        - range(string): Area of collection,<br>
+    - area 3(object):<br>
+        - day(string): Day of the week,<br>
+        - time(string): Time of collection,<br>
+        - range(string): Area of collection,<br>
+    - area 4(object):<br>
+        - day(string): Day of the week,<br>
+        - time(string): Time of collection,<br>
+        - range(string): Area of collection,<br>
 
 
 
 ## Contributions
 
-## Team Members:
+### Team Members:
 
 - Hao Pei
 - Yin-Shan Lin
 
-## Contributions Summary:
+### Contributions Summary:
 
 **Hao Pei:**<br>
 Implemented the authentication and connection flow with Firebase Firestore database and CRUD operations with database. Developed item editor screen, item list screen, item info screen, and categories screen, including functionality implementation.
