@@ -1,18 +1,23 @@
 import React from "react";
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, Pressable } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 import Categories from "./Screens/Categories";
 import Notifications from "./Screens/Notifications";
 import Home from "./Screens/Home";
 import ItemEditor from "./Screens/ItemEditor";
+import { app } from "./Firestore/firestoreSetup";
 import ItemList from "./Screens/ItemList";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { Entypo } from "@expo/vector-icons";
 
 const Stack = createStackNavigator();
 
 const App = () => {
+  function handleNotification() {
+    navigation.navigate("Notifications");
+  }
   return (
     <NavigationContainer>
       <Stack.Navigator>
@@ -21,7 +26,7 @@ const App = () => {
           component={Home}
           options={{ headerShown: false }}
         />
-        <Stack.Screen name="Categories" component={Categories} />
+        <Stack.Screen name="Categories" component={Categories}/>
         <Stack.Screen
           name="ItemList"
           component={ItemList}
@@ -29,7 +34,7 @@ const App = () => {
             headerTitle: () => (
               <View style={styles.headerTitleContainer}>
                 <Text style={styles.headerTitle}>
-                  {route.params?.trashKeyWords || "Recycling"}
+                  {route.params?.category || "Recycling"}
                 </Text>
               </View>
             ),
@@ -60,7 +65,7 @@ const App = () => {
           options={({ route, navigation }) => ({
             headerTitle: "Edit Item",
             headerRight: () =>
-              !route.params?.isEditMode ? ( // 只在不是编辑模式的时候显示编辑按钮
+              !route.params?.isEditMode ? ( // If not in edit mode, show the Edit button
                 <TouchableOpacity
                   onPress={() => {
                     navigation.setParams({ isEditMode: true });
@@ -101,6 +106,9 @@ const styles = StyleSheet.create({
   headerButtonText: {
     fontSize: 16,
     color: "#007BFF",
+  },
+  notificationButton: {
+    padding: 10,
   },
 });
 
