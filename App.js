@@ -1,16 +1,20 @@
-import { StyleSheet, Text, View } from "react-native";
+import React from "react";
+import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
-import Catalog from "./Screens/Catalog";
-import ItemList from "./Screens/ItemList";
-import ItemInfo from "./Screens/ItemInfo";
-import Notification from "./Screens/Notification";
 import { NavigationContainer } from "@react-navigation/native";
+import Categories from "./Screens/Categories";
+import Notifications from "./Screens/Notifications";
 import Home from "./Screens/Home";
 import ItemEditor from "./Screens/ItemEditor";
 import { app } from "./Firestore/firestoreSetup";
+import ItemList from "./Screens/ItemList";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
-export default function App() {
-  const Stack = createStackNavigator();
+
+const Stack = createStackNavigator();
+
+const App = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator>
@@ -19,21 +23,87 @@ export default function App() {
           component={Home}
           options={{ headerShown: false }}
         />
-        <Stack.Screen name="Catalog" component={Catalog} />
-        <Stack.Screen name="ItemList" component={ItemList} />
-        <Stack.Screen name="ItemInfo" component={ItemInfo} />
-        <Stack.Screen name="ItemEditor" component={ItemEditor} />
-        <Stack.Screen name="Notification" component={Notification} />
+        <Stack.Screen name="Categories" component={Categories} />
+        <Stack.Screen
+          name="ItemList"
+          component={ItemList}
+          options={({ route, navigation }) => ({
+            headerTitle: () => (
+              <View style={styles.headerTitleContainer}>
+                <Text style={styles.headerTitle}>
+                  {route.params?.category || "Recycling"}
+                </Text>
+              </View>
+            ),
+            headerRight: () => (
+              <View style={styles.headerRightContainer}>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("ItemEditor", { isEditMode: true })}
+                  style={styles.addButton}
+                >
+                  <FontAwesome6 name="add" size={24} color="black" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    const isAscending = route.params?.isAscending ?? true;
+                    navigation.setParams({ isAscending: !isAscending });
+                  }}
+                  style={styles.addButton}
+                >
+                  <MaterialIcons name="sort" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
+            ),
+          })}
+        />
+        <Stack.Screen
+          name="ItemEditor"
+          component={ItemEditor}
+          options={({ route, navigation }) => ({
+            headerTitle: "Edit Item",
+            headerRight: () =>
+              !route.params?.isEditMode ? ( // If not in edit mode, show the Edit button
+                <TouchableOpacity
+                  onPress={() => {
+                    navigation.setParams({ isEditMode: true });
+                  }}
+                  style={styles.headerButton}
+                >
+                  <Text style={styles.headerButtonText}>Edit</Text>
+                </TouchableOpacity>
+              ) : null,
+          })}
+        />
+        <Stack.Screen name="Notifications" component={Notifications} />
       </Stack.Navigator>
     </NavigationContainer>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
+  headerTitleContainer: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  headerRightContainer: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    marginRight: 10,
+  },
+  addButton: {
+    padding: 10,
+  },
+  headerButton: {
+    marginRight: 10,
+  },
+  headerButtonText: {
+    fontSize: 16,
+    color: "#007BFF",
   },
 });
+
+export default App;
