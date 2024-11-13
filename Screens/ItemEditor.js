@@ -1,28 +1,31 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
 import { Entypo } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import DropDownPicker from "react-native-dropdown-picker";
 import Checkbox from "expo-checkbox";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { items as importedItems, items } from "../Components/Items";
+import { getAllDocs } from "../Firestore/firestoreHelper";
 
 export default function ItemEditor({ navigation, route }) {
   const isEditMode = route.params?.isEditMode ?? true;
   const currentItem = route.params.itemObj;
   const [image, setImage] = useState(isEditMode ? "" : currentItem?.source);
-  const [selectedCategory, setSelectedCategory] = useState(currentItem.trashType);
+  const [selectedCategory, setSelectedCategory] = useState(currentItem?.trashType);
   const [openCategoryPicker, setOpenCategoryPicker] = useState(false);
-  const [categories, setCategories] = useState([
-    { label: "Plastic", value: "Plastic" },
-    { label: "Glass", value: "Glass" },
-    { label: "Metal", value: "Metal" },
-    { label: "Organic", value: "Organic" },
-    { label: "Paper", value: "Paper" },
-  ]);
-  const [date, setDate] = useState(currentItem.trashDate);
+  const [categories, setCategories] = useState([]);
+  const [date, setDate] = useState(currentItem?.trashDate);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [isNotificationEnabled, setIsNotificationEnabled] = useState(currentItem.notification);
+  const [isNotificationEnabled, setIsNotificationEnabled] = useState(currentItem?.notification);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const keyWordArr = await getAllDocs("trashKey", "Recycling");
+      setCategories(keyWordArr);
+    };
+
+    fetchData();
+  }, []);
 
   // Function to handle opening the camera
   const pickImage = async () => {
@@ -59,6 +62,16 @@ export default function ItemEditor({ navigation, route }) {
 
   // Function to handle Save button click
   const handleSave = () => {
+    // Save the data to the database
+    let updatedItem = {
+      source: image,
+      trashType: selectedCategory,
+      trashDate: date,
+      notification: isNotificationEnabled,
+      trashCategory: route.params.category,};
+
+
+
     navigation.navigate("ItemList");
   };
 
@@ -67,17 +80,9 @@ export default function ItemEditor({ navigation, route }) {
     navigation.goBack();
   };
 
-  // Function to handle Edit button click
-  const handleEdit = () => {
-    navigation.navigate("ItemEditor", {
-      itemId: route.params.itemId,
-      isEditMode: true,
-    });
-  };
 
   return (
     <View style={styles.container}>
-
 
       {/* Image */}
       <View

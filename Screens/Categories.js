@@ -52,13 +52,13 @@ export default function Categories({ navigation }) {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.imageContainer}
-          onPress={() => navigation.navigate("ItemList", { category: "Food" })}
+          onPress={() => navigation.navigate("ItemList", { category: "Garbage" })}
         >
           <Image
             source={require("../assets/Residual.webp")}
             style={styles.image}
           />
-          <Text style={styles.imageLabel}>Food</Text>
+          <Text style={styles.imageLabel}>Garbage</Text>
         </TouchableOpacity>
       </View>
     </View>

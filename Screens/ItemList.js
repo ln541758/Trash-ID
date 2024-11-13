@@ -8,13 +8,14 @@ import {
   FlatList,
   TextInput,
   Pressable,
+  Alert,
 } from "react-native";
 import { Entypo } from "@expo/vector-icons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { database } from "../Firestore/firestoreSetup";
 import { collection, onSnapshot } from "firebase/firestore";
-import {app} from "../Firestore/firestoreSetup";
+import { deleteDB } from "../Firestore/firestoreHelper";
 
 
 const ItemList = ({ navigation, route }) => {
@@ -22,6 +23,28 @@ const ItemList = ({ navigation, route }) => {
 
   const searchQuery = route.params?.searchQuery || "";
   const isAscending = route.params?.isAscending ?? true;
+
+  // Function to delete item
+  function handleDelete(id) {
+    Alert.alert(
+      "Delete Item",
+      "Are you sure you want to delete this item?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          onPress: async () => {
+            await deleteDB(id, "trashData");
+          },
+        },
+      ],
+
+    );
+  };
+
 
   // add listener to fetch data from firestore
   useEffect(() => {
@@ -71,6 +94,7 @@ const ItemList = ({ navigation, route }) => {
           navigation.navigate("ItemEditor", {
             itemObj: item,
             isEditMode: false,
+            category: route.params.category,
           })
         }
         style={styles.itemContainer}
@@ -85,7 +109,8 @@ const ItemList = ({ navigation, route }) => {
             onPress={() =>
               navigation.navigate("ItemEditor", {
                 itemObj: item,
-                isEditMode: true
+                isEditMode: true,
+                category: route.params.category,
               })
             }
             style={styles.addButton}
@@ -95,10 +120,7 @@ const ItemList = ({ navigation, route }) => {
 
           <TouchableOpacity
             style={styles.addButton}
-            onPress={() => {
-              setItems((prevItems) =>
-                prevItems.filter((currentItem) => currentItem.id !== item.id)
-              );
+            onPress={() => {handleDelete(item.id)
             }}
           >
             <AntDesign name="delete" size={24} color="black" />
