@@ -29,7 +29,7 @@ const App = () => {
             headerTitle: () => (
               <View style={styles.headerTitleContainer}>
                 <Text style={styles.headerTitle}>
-                  {route.params?.trashKeyWords || "Recycling"}
+                  {route.params?.category || "Recycling"}
                 </Text>
               </View>
             ),
