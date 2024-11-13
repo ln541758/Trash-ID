@@ -69,7 +69,7 @@ const ItemList = ({ navigation, route }) => {
       <TouchableOpacity
         onPress={() =>
           navigation.navigate("ItemEditor", {
-            itemId: item.id,
+            itemObj: item,
             isEditMode: false,
           })
         }
@@ -84,7 +84,7 @@ const ItemList = ({ navigation, route }) => {
           <TouchableOpacity
             onPress={() =>
               navigation.navigate("ItemEditor", {
-                itemId: item.id,
+                itemObj: item,
                 isEditMode: true
               })
             }

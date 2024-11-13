@@ -9,10 +9,9 @@ import { items as importedItems, items } from "../Components/Items";
 
 export default function ItemEditor({ navigation, route }) {
   const isEditMode = route.params?.isEditMode ?? true;
-  const itemId = route.params?.itemId;
-  const currentItem = items.find((item) => item.id === itemId);
+  const currentItem = route.params.itemObj;
   const [image, setImage] = useState(isEditMode ? "" : currentItem?.source);
-  const [selectedCategory, setSelectedCategory] = useState("Plastic");
+  const [selectedCategory, setSelectedCategory] = useState(currentItem.trashType);
   const [openCategoryPicker, setOpenCategoryPicker] = useState(false);
   const [categories, setCategories] = useState([
     { label: "Plastic", value: "Plastic" },
@@ -21,9 +20,9 @@ export default function ItemEditor({ navigation, route }) {
     { label: "Organic", value: "Organic" },
     { label: "Paper", value: "Paper" },
   ]);
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(currentItem.trashDate);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [isNotificationEnabled, setIsNotificationEnabled] = useState(false);
+  const [isNotificationEnabled, setIsNotificationEnabled] = useState(currentItem.notification);
 
   // Function to handle opening the camera
   const pickImage = async () => {
@@ -120,12 +119,12 @@ export default function ItemEditor({ navigation, route }) {
       {/* Date */}
       {isEditMode ? (
         <View style={styles.datePickerButton} onTouchEnd={showDatePicker}>
-          <Text style={styles.dateText}>Date: {date.toDateString()}</Text>
+          <Text style={styles.dateText}>Date: {date}</Text>
         </View>
       ) : (
         <View style={styles.fieldContainer}>
           <Text style={styles.label}>Date:</Text>
-          <Text style={styles.value}>{date.toDateString()}</Text>
+          <Text style={styles.value}>{date}</Text>
         </View>
       )}
       <DateTimePickerModal
