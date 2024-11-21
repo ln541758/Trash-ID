@@ -6,18 +6,14 @@ import Categories from "./Screens/Categories";
 import Notifications from "./Screens/Notifications";
 import Home from "./Screens/Home";
 import ItemEditor from "./Screens/ItemEditor";
-import { app } from "./Firestore/firestoreSetup";
 import ItemList from "./Screens/ItemList";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { Entypo } from "@expo/vector-icons";
 
 const Stack = createStackNavigator();
 
 const App = () => {
-  function handleNotification() {
-    navigation.navigate("Notifications");
-  }
+
   return (
     <NavigationContainer>
       <Stack.Navigator>
