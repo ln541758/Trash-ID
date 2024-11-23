@@ -139,18 +139,14 @@ export default function MapScreen({ navigation }) {
           <Text style={styles.infoTitle}>{selectedMarker.title}</Text>
           <Text style={styles.infoText}>Open: {selectedMarker.openNow}</Text>
           <Text style={styles.infoText}>
-            Categories of Waste Accepted:{" "}
-            {Array.isArray(selectedMarker?.categories) &&
-            selectedMarker.categories.length > 0
-              ? selectedMarker.categories.join(", ")
-              : "Not available"}
+            Categories of Waste Accepted: {selectedMarker.categories}
           </Text>
 
           <TouchableOpacity
             style={styles.linkButton}
             onPress={() =>
               navigation.navigate("ItemList", {
-                category: selectedMarker.title,
+                category: selectedMarker.categories
               })
             }
           >
