@@ -1,15 +1,17 @@
-import { StyleSheet, Text, TextInput, View, Alert } from 'react-native'
+import { StyleSheet, Text, TextInput,
+    View, Alert, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
-import PressButton from './PressButton'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '../Firestore/firestoreSetup'
+import { useNavigation } from '@react-navigation/native'
 
 
-export default function Signup({navigation}) {
+export default function Signup() {
     // const navigation = useNavigation()
     const [valueVar, setValueVar] = useState('')
     const [passwordVar, setPasswordVar] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
+    const navigation = useNavigation()
 
     function handleNavigation() {
         navigation.replace('Login')
@@ -55,16 +57,16 @@ export default function Signup({navigation}) {
                 value={confirmPassword}
                 onChangeText={setConfirmPassword} />
             {/* button section */}
-            <PressButton passedOnPress={handleSignUp}
-                componentStyle={styles.buttonStyle}>
+            <TouchableOpacity onPress={handleSignUp}
+                style={styles.buttonStyle}>
                 <Text style={[styles.text, { fontSize: 15 }]}>Register</Text>
-            </PressButton>
+            </TouchableOpacity>
 
-            <PressButton
-                passedOnPress={handleNavigation}
-                componentStyle={styles.buttonStyle}>
+            <TouchableOpacity
+                onPress={handleNavigation}
+                style={styles.buttonStyle}>
                 <Text style={[styles.text, { fontSize: 15 }]}>Already registered? Login</Text>
-            </PressButton>
+            </TouchableOpacity>
         </View>
     )
 }
