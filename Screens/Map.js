@@ -4,7 +4,6 @@ import {
   Text,
   View,
   TextInput,
-  TouchableOpacity,
   Alert,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
@@ -17,7 +16,7 @@ export default function MapScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState(""); // Keyword entered in search bar
   const [searchResults, setSearchResults] = useState([]); // Google Places API results
 
-  const GOOGLE_PLACES_API_KEY = "YOUR_GOOGLE_PLACES_API_KEY"; // Replace with your API key
+  const GOOGLE_PLACES_API_KEY = process.env.EXPO_PUBLIC_mapsApiKey; // Replace with your API key
 
   // Request location permissions and get the user's current location
   useEffect(() => {
@@ -56,7 +55,7 @@ export default function MapScreen({ navigation }) {
     }
 
     const { latitude, longitude } = location;
-    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=5000&keyword=${searchQuery}&key=${process.env.EXPO_PUBLIC_mapsApiKey}`;
+    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=5000&keyword=${searchQuery}&key=${GOOGLE_PLACES_API_KEY}`;
 
     try {
       const response = await axios.get(url);
@@ -103,10 +102,14 @@ export default function MapScreen({ navigation }) {
           initialRegion={location}
           showsUserLocation={true}
         >
-          {/* User's current location */}
-          <Marker coordinate={location} title="You are here" />
+          {/* User's current location with a blue marker */}
+          <Marker
+            coordinate={location}
+            title="You are here"
+            pinColor="orange" // Custom color for "My Location" marker
+          />
 
-          {/* Display search results as markers */}
+          {/* Display search results with red markers */}
           {searchResults.map((result) => (
             <Marker
               key={result.id}
@@ -115,11 +118,11 @@ export default function MapScreen({ navigation }) {
                 longitude: result.longitude,
               }}
               title={result.title}
+              pinColor="red" // Custom color for search result markers
             />
           ))}
         </MapView>
       )}
-
     </View>
   );
 }
@@ -149,17 +152,5 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
     width: "100%",
-  },
-  locationButton: {
-    position: "absolute",
-    bottom: 30,
-    alignSelf: "center",
-    backgroundColor: "#007BFF",
-    padding: 15,
-    borderRadius: 5,
-  },
-  locationButtonText: {
-    color: "#fff",
-    fontSize: 16,
   },
 });
