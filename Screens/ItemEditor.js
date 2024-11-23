@@ -1,33 +1,40 @@
 import React, { useEffect, useState } from "react";
 import {
-  StyleSheet, Text, View,
-  TouchableOpacity, Image, Alert
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Image,
+  Alert,
 } from "react-native";
 import { Entypo } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import DropDownPicker from "react-native-dropdown-picker";
 import Checkbox from "expo-checkbox";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { getAllDocs, updateDB, writeToDB} from "../Firestore/firestoreHelper";
-import {ref, uploadBytesResumable, getDownloadURL} from "firebase/storage";
-import {storage} from "../Firestore/firestoreSetup";
-
+import { getAllDocs, updateDB, writeToDB } from "../Firestore/firestoreHelper";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { storage } from "../Firestore/firestoreSetup";
 
 export default function ItemEditor({ navigation, route }) {
   const [categoryKey, setCategoryKey] = useState(route.params.category);
   const isEditMode = route.params?.isEditMode ?? true;
   const currentItem = route.params.itemObj;
   const [response, requestPermission] = ImagePicker.useCameraPermissions();
-  const [image, setImage] = useState(isEditMode ? "" : currentItem?.source);
-  const [selectedCategory, setSelectedCategory] = useState(currentItem?.trashType);
+  const [image, setImage] = useState(
+    isEditMode ? route.params?.imageUri || "" : currentItem?.source
+  );
+  const [selectedCategory, setSelectedCategory] = useState(
+    currentItem?.trashType
+  );
   const [openCategoryPicker, setOpenCategoryPicker] = useState(false);
   const [openTypePicker, setOpenTypePicker] = useState(false);
   const [categories, setCategories] = useState([]);
   const [date, setDate] = useState(currentItem?.trashDate);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [isNotificationEnabled,
-    setIsNotificationEnabled] = useState(currentItem
-      ? currentItem.notification : false);
+  const [isNotificationEnabled, setIsNotificationEnabled] = useState(
+    currentItem ? currentItem.notification : false
+  );
   const [trashKey, setTrashKey] = useState([
     { label: "Recycling", value: "Recycling" },
     { label: "Organic", value: "Organic" },
@@ -38,13 +45,13 @@ export default function ItemEditor({ navigation, route }) {
   // Function to verify permission
   async function verifyPermission() {
     if (response.granted) {
-        return true;
+      return true;
     }
     const permission = await requestPermission();
     return permission.granted;
-}
+  }
 
-// Fetch the categories for the selected type
+  // Fetch the categories for the selected type
   useEffect(() => {
     const fetchData = async () => {
       const keyWordArr = await getAllDocs("trashKey", categoryKey);
@@ -57,31 +64,33 @@ export default function ItemEditor({ navigation, route }) {
   const pickImage = async () => {
     if (!isEditMode) return;
     const hasPermission = await verifyPermission();
-            if (!hasPermission) {
-                Alert.alert("Permission required",
-                    "Please grant permission to access the camera",
-                    [{ text: "OK" }]);
-                return;
-            }
+    if (!hasPermission) {
+      Alert.alert(
+        "Permission required",
+        "Please grant permission to access the camera",
+        [{ text: "OK" }]
+      );
+      return;
+    }
     try {
-    let result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.1,
-    });
+      let result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.1,
+      });
 
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-    }} catch (e) {
-        console.error("Error reading image: ", e);
+      if (!result.canceled) {
+        setImage(result.assets[0].uri);
+      }
+    } catch (e) {
+      console.error("Error reading image: ", e);
     }
   };
 
   useEffect(() => {
     async function downloadImage() {
       try {
-
         if (currentItem?.source) {
           const imageRef = ref(storage, currentItem.source);
           const httpsImageURi = await getDownloadURL(imageRef);
@@ -112,7 +121,6 @@ export default function ItemEditor({ navigation, route }) {
     }
   }
 
-
   // Function to show date picker
   const showDatePicker = () => {
     if (isEditMode) {
@@ -136,12 +144,12 @@ export default function ItemEditor({ navigation, route }) {
   // Function to handle Save button click
   const handleSave = async () => {
     // Save the data to the database
-    let uri = '';
+    let uri = "";
     if (image) {
       uri = await uploadImage(image);
     }
     let updatedItem = {
-      source: image ? uri : '',
+      source: image ? uri : "",
       trashType: selectedCategory,
       trashDate: date,
       notification: isNotificationEnabled,
@@ -172,17 +180,15 @@ export default function ItemEditor({ navigation, route }) {
     ]);
   };
 
-
   return (
     <View style={styles.container}>
-
       {/* Image */}
       <View
         style={styles.imageContainer}
         onTouchEnd={isEditMode ? pickImage : null}
       >
         {image ? (
-          <Image source={{uri: image}} style={styles.image} />
+          <Image source={{ uri: image }} style={styles.image} />
         ) : (
           isEditMode && (
             <View style={styles.placeholderImage}>
@@ -204,7 +210,7 @@ export default function ItemEditor({ navigation, route }) {
           placeholder="Select a type"
           style={styles.dropdown}
           containerStyle={{
-            zIndex: openTypePicker ? 2 : 1,
+            zIndex: openTypePicker ? 2000 : 1,
             marginBottom: 20,
           }}
           dropDownContainerStyle={styles.dropdownContainer}
@@ -228,7 +234,7 @@ export default function ItemEditor({ navigation, route }) {
           placeholder="Select a category"
           style={styles.dropdown}
           containerStyle={{
-            zIndex: openCategoryPicker ? 2 : 1,
+            zIndex: openCategoryPicker ? 2000 : 1,
             marginBottom: 20,
           }}
           dropDownContainerStyle={styles.dropdownContainer}
@@ -239,8 +245,6 @@ export default function ItemEditor({ navigation, route }) {
           <Text style={styles.value}>{selectedCategory}</Text>
         </View>
       )}
-
-
 
       {/* Date */}
       {isEditMode ? (
@@ -258,6 +262,7 @@ export default function ItemEditor({ navigation, route }) {
         mode="date"
         onConfirm={handleConfirm}
         onCancel={hideDatePicker}
+        textColor="black"
       />
 
       {/* Notification */}

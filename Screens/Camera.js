@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -13,17 +13,34 @@ import * as ImagePicker from "expo-image-picker";
 export default function CameraScreen({ navigation }) {
   const [imageUri, setImageUri] = useState(null);
 
+  // Request Camera Permission
+  const requestCameraPermission = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      alert("Camera permission is required to use this feature.");
+      return false;
+    }
+    return true;
+  };
+
   // Function to handle taking a photo
   const takePhoto = async () => {
-    let result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
+    const hasPermission = await requestCameraPermission();
+    if (!hasPermission) return;
+  
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+  
+      if (!result.canceled) {
+        setImageUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Error launching camera:", error);
     }
   };
 
@@ -35,6 +52,7 @@ export default function CameraScreen({ navigation }) {
   // Function to handle navigating to Item Editor
   const handleItemEditor = () => {
     navigation.navigate("ItemEditor", { isEditMode: true, imageUri });
+    setImageUri(null);
   };
 
   return (
