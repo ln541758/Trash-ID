@@ -4,6 +4,7 @@ import {
   Text,
   View,
   TextInput,
+  TouchableOpacity,
   Alert,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
@@ -15,6 +16,7 @@ export default function MapScreen({ navigation }) {
   const [location, setLocation] = useState(null); // User's current location
   const [searchQuery, setSearchQuery] = useState(""); // Keyword entered in search bar
   const [searchResults, setSearchResults] = useState([]); // Google Places API results
+  const [selectedMarker, setSelectedMarker] = useState(null); // Selected marker for additional info
 
   const GOOGLE_PLACES_API_KEY = process.env.EXPO_PUBLIC_mapsApiKey; // Replace with your API key
 
@@ -43,8 +45,9 @@ export default function MapScreen({ navigation }) {
   };
 
   // Search for places using Google Places API
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
+  const handleSearch = async (query) => {
+    const finalQuery = query.trim(); // Use the passed query directly
+    if (!finalQuery) {
       Alert.alert("Error", "Please enter a search query.");
       return;
     }
@@ -55,7 +58,7 @@ export default function MapScreen({ navigation }) {
     }
 
     const { latitude, longitude } = location;
-    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=5000&keyword=${searchQuery}&key=${GOOGLE_PLACES_API_KEY}`;
+    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=5000&keyword=${finalQuery}&key=${GOOGLE_PLACES_API_KEY}`;
 
     try {
       const response = await axios.get(url);
@@ -66,15 +69,16 @@ export default function MapScreen({ navigation }) {
         return;
       }
 
-      // Map the API response to markers
       const results = places.map((place) => ({
         id: place.place_id,
         latitude: place.geometry.location.lat,
         longitude: place.geometry.location.lng,
         title: place.name,
+        openNow: place.opening_hours?.open_now ? "Open" : "Closed",
+        categories: "Recycling",
       }));
 
-      setSearchResults(results);
+      setSearchResults(results); // Update the search results
     } catch (error) {
       console.error("Error fetching places:", error);
       Alert.alert("Error", "Failed to fetch places. Please try again.");
@@ -89,9 +93,14 @@ export default function MapScreen({ navigation }) {
           style={styles.searchInput}
           placeholder="Enter location"
           value={searchQuery}
-          onChangeText={setSearchQuery}
-          onSubmitEditing={handleSearch} // Trigger search when pressing Enter
+          onChangeText={setSearchQuery} // Update the search query
         />
+        <TouchableOpacity
+          style={styles.searchButton}
+          onPress={() => handleSearch(searchQuery)}
+        >
+          <Text style={styles.searchButtonText}>Search</Text>
+        </TouchableOpacity>
         <Notif navigation={navigation} />
       </View>
 
@@ -102,14 +111,10 @@ export default function MapScreen({ navigation }) {
           initialRegion={location}
           showsUserLocation={true}
         >
-          {/* User's current location with a blue marker */}
-          <Marker
-            coordinate={location}
-            title="You are here"
-            pinColor="orange" // Custom color for "My Location" marker
-          />
+          {/* User's current location */}
+          <Marker coordinate={location} title="You are here" pinColor="blue" />
 
-          {/* Display search results with red markers */}
+          {/* Display search results */}
           {searchResults.map((result) => (
             <Marker
               key={result.id}
@@ -118,10 +123,46 @@ export default function MapScreen({ navigation }) {
                 longitude: result.longitude,
               }}
               title={result.title}
-              pinColor="red" // Custom color for search result markers
+              pinColor="red"
+              onPress={() => {
+                console.log("Selected Marker:", result);
+                setSelectedMarker(result);
+              }}
             />
           ))}
         </MapView>
+      )}
+
+      {/* Bottom Information Box */}
+      {selectedMarker && (
+        <View style={styles.infoBox}>
+          <Text style={styles.infoTitle}>{selectedMarker.title}</Text>
+          <Text style={styles.infoText}>Open: {selectedMarker.openNow}</Text>
+          <Text style={styles.infoText}>
+            Categories of Waste Accepted:{" "}
+            {Array.isArray(selectedMarker?.categories) &&
+            selectedMarker.categories.length > 0
+              ? selectedMarker.categories.join(", ")
+              : "Not available"}
+          </Text>
+
+          <TouchableOpacity
+            style={styles.linkButton}
+            onPress={() =>
+              navigation.navigate("ItemList", {
+                category: selectedMarker.title,
+              })
+            }
+          >
+            <Text style={styles.linkButtonText}>Go to Item List</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setSelectedMarker(null)} // Close the info box
+          >
+            <Text style={styles.closeButtonText}>Close</Text>
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   );
@@ -152,5 +193,62 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
     width: "100%",
+  },
+  infoBox: {
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+    padding: 15,
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  infoTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  infoText: {
+    fontSize: 14,
+    marginBottom: 5,
+  },
+  linkButton: {
+    backgroundColor: "#007BFF",
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  linkButtonText: {
+    color: "#fff",
+    fontSize: 14,
+  },
+  closeButton: {
+    backgroundColor: "#ccc",
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  closeButtonText: {
+    fontSize: 14,
+    color: "#333",
+  },
+  searchButton: {
+    backgroundColor: "#007BFF",
+    padding: 10,
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 5,
+    marginRight: 20,
+  },
+  searchButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
   },
 });
