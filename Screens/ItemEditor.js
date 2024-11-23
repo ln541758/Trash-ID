@@ -145,12 +145,9 @@ export default function ItemEditor({ navigation, route }) {
   const handleSave = async () => {
     // Save the data to the database
     let uri = "";
-    if (image && (!currentItem || currentItem.source !== image)) {
+    if (image) {
       uri = await uploadImage(image);
-  } else if (currentItem && currentItem.source) {
-      // Use the existing image URI if the image hasn't changed
-      uri = currentItem.source;
-  }
+    }
     let updatedItem = {
       source: uri,
       trashType: selectedCategory,

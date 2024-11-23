@@ -15,9 +15,13 @@ export async function writeToDB(userID, subCollectionName, data) {
     }
 }
 
-export async function deleteDB(deletedId, collectionName) {
+export async function deleteDB(userID, subcollectionName, docID) {
     try {
-        const rmDoc = await deleteDoc(doc(database, collectionName, deletedId));
+        const docRef = doc(database, 'trashData', userID, subcollectionName, docID);
+
+        await deleteDoc(docRef);
+
+        console.log("Document deleted successfully with ID: ", docID);
     } catch (e) {
         console.error("Error deleting document: ", e);
     }
@@ -46,9 +50,12 @@ export async function getAllDocs(collectionName, fieldName) {
     }
 }
 
-export async function updateDB(collectionName, docId, data) {
+export async function updateDB(userID, subcollectionName, docID, updatedData) {
     try {
-        const docRef = await updateDoc(doc(database, collectionName, docId), data);
+        const docRef = doc(database, 'trashData', userID, subcollectionName, docID);
+        await updateDoc(docRef, updatedData);
+
+        console.log("Document updated successfully with ID: ", docID);
     } catch (e) {
         console.error("Error updating document: ", e);
     }
