@@ -12,9 +12,9 @@ import * as ImagePicker from "expo-image-picker";
 import DropDownPicker from "react-native-dropdown-picker";
 import Checkbox from "expo-checkbox";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { getAllDocs, updateDB, writeToDB} from "../Firestore/firestoreHelper";
-import {ref, uploadBytesResumable, getDownloadURL} from "firebase/storage";
-import {storage, auth} from "../Firestore/firestoreSetup";
+import { getAllDocs, updateDB, writeToDB } from "../Firestore/firestoreHelper";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { storage, auth } from "../Firestore/firestoreSetup";
 
 
 export default function ItemEditor({ navigation, route }) {
@@ -74,12 +74,11 @@ export default function ItemEditor({ navigation, route }) {
       return;
     }
     try {
-    let result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.1,
-    });
+      let result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.1,
+      });
 
       if (!result.canceled) {
         setImage(result.assets[0].uri);
@@ -146,20 +145,26 @@ export default function ItemEditor({ navigation, route }) {
   const handleSave = async () => {
     // Save the data to the database
     let uri = "";
-    if (image) {
+    if (image && (!currentItem || currentItem.source !== image)) {
       uri = await uploadImage(image);
-    }
+  } else if (currentItem && currentItem.source) {
+      // Use the existing image URI if the image hasn't changed
+      uri = currentItem.source;
+  }
     let updatedItem = {
-      source: image ? uri : "",
+      source: uri,
       trashType: selectedCategory,
       trashDate: date,
       notification: isNotificationEnabled,
       trashCategory: categoryKey,
     };
     if (currentItem) {
-      await updateDB("trashData", currentItem.id, updatedItem);
+      await updateDB(auth.currentUser.uid,
+        "trash",
+        currentItem.id,
+        updatedItem);
     } else {
-      await writeToDB(auth.currentUser.uid, "trashData", updatedItem);
+      await writeToDB(auth.currentUser.uid, "trash", updatedItem);
     }
     // passing the category to the next screen
     navigation.navigate("ItemList", { category: categoryKey });
