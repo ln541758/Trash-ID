@@ -174,7 +174,9 @@ const styles = StyleSheet.create({
   label: {
     alignSelf: 'flex-start',
     fontSize: 16,
+    fontWeight: 'bold',
     marginTop: 10,
+    marginBottom: 5,
   },
   input: {
     width: '100%',

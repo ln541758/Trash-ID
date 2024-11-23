@@ -5,9 +5,11 @@ import {
 } from "firebase/firestore";
 import { database } from "./firestoreSetup";
 
-export async function writeToDB(collectionName, data) {
+export async function writeToDB(userID, subCollectionName, data) {
     try {
-        const docRef = await addDoc(collection(database, collectionName), data);
+        const userDataRef = doc(database, 'trashData', userID);
+        const trashDataRef = collection(userDataRef, subCollectionName);
+        const docRef = await addDoc(trashDataRef, data);
     } catch (e) {
         console.error("Error adding document: ", e);
     }
@@ -20,7 +22,6 @@ export async function deleteDB(deletedId, collectionName) {
         console.error("Error deleting document: ", e);
     }
 }
-
 
 export async function getAllDocs(collectionName, fieldName) {
     try {

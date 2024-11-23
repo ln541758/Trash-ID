@@ -10,7 +10,7 @@ import Checkbox from "expo-checkbox";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { getAllDocs, updateDB, writeToDB} from "../Firestore/firestoreHelper";
 import {ref, uploadBytesResumable, getDownloadURL} from "firebase/storage";
-import {storage} from "../Firestore/firestoreSetup";
+import {storage, auth} from "../Firestore/firestoreSetup";
 
 
 export default function ItemEditor({ navigation, route }) {
@@ -150,7 +150,7 @@ export default function ItemEditor({ navigation, route }) {
     if (currentItem) {
       await updateDB("trashData", currentItem.id, updatedItem);
     } else {
-      await writeToDB("trashData", updatedItem);
+      await writeToDB(auth.currentUser.uid, "trashData", updatedItem);
     }
     // passing the category to the next screen
     navigation.navigate("ItemList", { category: categoryKey });
