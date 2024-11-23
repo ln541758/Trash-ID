@@ -74,7 +74,7 @@ export default function Signup() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: 'lightgreen',
+        backgroundColor: 'lightblue',
         justifyContent: 'center',
     },
     text: {
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
         fontSize: 20,
     },
     buttonStyle: {
-        backgroundColor: 'lightblue',
+        backgroundColor: 'lightgreen',
         padding: 10,
         margin: 10,
         alignItems: 'center',

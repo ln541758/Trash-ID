@@ -52,3 +52,12 @@ export async function updateDB(collectionName, docId, data) {
         console.error("Error updating document: ", e);
     }
 }
+
+export async function registerUserInfo(uid, data) {
+    try {
+        const docRef = doc(database, 'trashData', uid);
+        await setDoc(docRef, data, { merge: true });
+    } catch (e) {
+        console.error("Error creating user entry: ", e);
+    }
+}

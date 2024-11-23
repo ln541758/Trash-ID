@@ -12,7 +12,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Login from "./Screens/Login";
 import Signup from "./Screens/Signup";
 import { useState, useEffect } from "react";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "./Firestore/firestoreSetup";
 import Profile from "./Screens/Profile";
 
@@ -28,8 +28,17 @@ const AppStack = (<>
           style={styles.notificationButton}>
           <FontAwesome6 name="house" size={24} color="black" />
         </TouchableOpacity>
-      </View>)
+      </View>),
+      headerLeft: () => (
+        <View style={styles.headerRightContainer}>
+          <TouchableOpacity
+            onPress={() => signOut(auth)}
+            style={styles.notificationButton}>
+            <FontAwesome6 name="right-from-bracket" size={24} color="black" />
+          </TouchableOpacity>
+        </View>)
   })}/>
+
   <Stack.Screen
     name="Home"
     component={Home}
@@ -113,8 +122,8 @@ const App = () => {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{
         initialRouteName: 'Signup',
-        headerStyle: { backgroundColor: 'white' },
-        headerTintColor: 'green',
+        headerStyle: { backgroundColor: 'lightblue' },
+        headerTintColor: 'black',
         backgroundColor: 'lightgrey',
       }}>
         {isLogged ? AppStack : AuthStack}
