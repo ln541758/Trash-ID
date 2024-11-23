@@ -114,16 +114,26 @@ Easily create, view, update, or delete information related to your waste managem
 ### Contributions Summary:
 
 **Hao Pei:**<br>
-Implemented the authentication and connection flow with Firebase Firestore database and CRUD operations with database. Developed item editor screen, item list screen, item info screen, and categories screen, including functionality implementation.
+Implemented authentication and connection flow with Firebase Firestore, including CRUD operations with the database. Developed item editor, item list, item info, and categories screens with full functionality. Utilized Firebase authentication with email and password to ensure secure access to protected resources. Designed a login screen with features like password strength validation and account recovery options. Anonymous users can view limited data, while account and profile details are available to logged-in users. 
 
 **Yin-Shan Lin:**<br>
-Set up the initial project structure and navigation using React Navigation. Completed CRUD operations in applications. Developed and styled the camera screen, item editor screen, item list screen, item info screen, and categories screen, including functionality implementation.
+Set up the initial project structure and navigation using React Navigation. Completed CRUD operations in the application. Developed and styled the camera screen, item editor screen, item list screen, item info screen, and categories screen, including functionality implementation. Successfully implemented and handled camera permissions and usage, as well as location permissions and interactive map functionality with features such as displaying the user's current location, searching for places, and navigating through map markers.
 
 
 ## Screenshots
+Categories
 ![Categories](assets/Categories.png)
+Item List
 ![Item List](assets/ItemList.png)
+Edit Item
 ![Edit Item](assets/EditItem.png)
+Map
+![Map](assets/Map.png)
+Camera
+![Camera](assets/Camera.png)
+
+## API keys
+- Google Map: AIzaSyBSt6HZMzYzGejS-RnFl1o_-nyCEHc5ks0
 
 
 ## Version Control and Collaboration

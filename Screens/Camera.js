@@ -1,40 +1,52 @@
-import React, { useState } from "react";
+import React, {useState } from "react";
 import {
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
   Image,
-  Pressable,
 } from "react-native";
-import { Entypo } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import Notif from "../Components/Notif";
 
 export default function CameraScreen({ navigation }) {
   const [imageUri, setImageUri] = useState(null);
 
-  // Function to handle taking a photo
-  const takePhoto = async () => {
-    let result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
+  // Request Camera Permission
+  const requestCameraPermission = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      alert("Camera permission is required to use this feature.");
+      return false;
     }
+    return true;
   };
 
-  // Function to handle navigating to notifications
-  const handleNotification = () => {
-    navigation.navigate("Notifications");
+  // Function to handle taking a photo
+  const takePhoto = async () => {
+    const hasPermission = await requestCameraPermission();
+    if (!hasPermission) return;
+
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        setImageUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Error launching camera:", error);
+    }
   };
 
   // Function to handle navigating to Item Editor
   const handleItemEditor = () => {
     navigation.navigate("ItemEditor", { isEditMode: true, imageUri });
+    setImageUri(null);
   };
 
   return (
@@ -42,12 +54,7 @@ export default function CameraScreen({ navigation }) {
       {/* Header */}
       <View style={styles.headerContainer}>
         <Text style={styles.headerTitle}>Take a Photo</Text>
-        <Pressable
-          onPress={handleNotification}
-          style={styles.notificationButton}
-        >
-          <Entypo name="notification" size={24} color="black" />
-        </Pressable>
+        <Notif navigation={navigation}/>
       </View>
 
       {/* Image Preview */}
