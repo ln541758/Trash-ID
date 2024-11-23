@@ -1,14 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, {useState } from "react";
 import {
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
   Image,
-  Pressable,
 } from "react-native";
-import { Entypo } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import Notif from "../Components/Notif";
 
 export default function CameraScreen({ navigation }) {
   const [imageUri, setImageUri] = useState(null);
@@ -44,11 +43,6 @@ export default function CameraScreen({ navigation }) {
     }
   };
 
-  // Function to handle navigating to notifications
-  const handleNotification = () => {
-    navigation.navigate("Notifications");
-  };
-
   // Function to handle navigating to Item Editor
   const handleItemEditor = () => {
     navigation.navigate("ItemEditor", { isEditMode: true, imageUri });
@@ -60,12 +54,7 @@ export default function CameraScreen({ navigation }) {
       {/* Header */}
       <View style={styles.headerContainer}>
         <Text style={styles.headerTitle}>Take a Photo</Text>
-        <Pressable
-          onPress={handleNotification}
-          style={styles.notificationButton}
-        >
-          <Entypo name="notification" size={24} color="black" />
-        </Pressable>
+        <Notif navigation={navigation}/>
       </View>
 
       {/* Image Preview */}
