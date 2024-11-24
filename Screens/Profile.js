@@ -1,10 +1,14 @@
-import { StyleSheet, Text, TextInput, View, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import {
+  StyleSheet, Text, TextInput,
+  View, ScrollView, TouchableOpacity,
+  Modal, Alert
+} from 'react-native';
 import React, { useState } from 'react';
 import { getAuth, reauthenticateWithCredential, EmailAuthProvider, updatePassword } from 'firebase/auth';
 import { registerUserInfo } from '../Firestore/firestoreSetup';
-import {auth} from '../Firestore/firestoreSetup'
+import { auth } from '../Firestore/firestoreSetup'
 
-export default function Profile({navigation }) {
+export default function Profile({ navigation }) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -15,8 +19,13 @@ export default function Profile({navigation }) {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isEmailValid, setIsEmailValid] = useState(true);
 
   const handleSave = async () => {
+    if (!isEmailValid) {
+      Alert.alert('Invalid email address', 'Please enter a valid email address');
+      return;
+    }
     let data = { username, email, phone, city, street, zip };
     const uploadData = await registerUserInfo(auth.currentUser.uid, data);
     navigation.navigate('Home');
@@ -30,6 +39,15 @@ export default function Profile({navigation }) {
     setCity('');
     setStreet('');
     setZip('');
+  };
+
+  const handleEmailInput = (text) => {
+    setEmail(text);
+    if (text.includes('@') && text.includes('.')) {
+      setIsEmailValid(true);
+    } else {
+      setIsEmailValid(false);
+    }
   };
 
   const handleResetPassword = async () => {
@@ -66,12 +84,16 @@ export default function Profile({navigation }) {
 
       <Text style={styles.label}>Email:</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, !isEmailValid && { borderColor: 'red' }]}
         value={email}
-        onChangeText={setEmail}
+        onChangeText={handleEmailInput}
         placeholder="Enter your email address"
         keyboardType="email-address"
       />
+      {!isEmailValid && (
+        <Text style={{ color: 'red' }}>Please enter a valid email address</Text>
+      )}
+
 
       <Text style={styles.label}>Phone:</Text>
       <TextInput
