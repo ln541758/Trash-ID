@@ -17,7 +17,7 @@ export default function Signup() {
         navigation.replace('Login')
     }
 
-    // check if
+    // check if the password is valid
     const handleSignUp = async () => {
         try {
             if (valueVar.trim() === '' ||
@@ -26,7 +26,10 @@ export default function Signup() {
                 alert('Please enter valid inputs');
             } else if (passwordVar.trim() !== confirmPassword.trim()) {
                 Alert.alert('Passwords do not match');
-            } else {
+            } else if (!/[a-zA-Z]/.test(passwordVar) || !/[0-9]/.test(passwordVar)) {
+                Alert.alert('Password cannot only contain letters or numbers');
+            }
+            else {
                 const userCredential = await
                 createUserWithEmailAndPassword(auth, valueVar, passwordVar);
             }
@@ -37,6 +40,7 @@ export default function Signup() {
 
     return (
         <View style={styles.container}>
+            <Text style={styles.heading}>TrashID: Snap, Sort and Save the Planet</Text>
             <Text style={styles.text}>Email address</Text>
             <TextInput style={styles.input}
                 placeholder='Email'
@@ -64,7 +68,7 @@ export default function Signup() {
 
             <TouchableOpacity
                 onPress={handleNavigation}
-                style={styles.buttonStyle}>
+                style={[styles.buttonStyle, { backgroundColor: 'lightcoral' }]}>
                 <Text style={[styles.text, { fontSize: 15 }]}>Already registered? Login</Text>
             </TouchableOpacity>
         </View>
@@ -76,6 +80,16 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: 'lightblue',
         justifyContent: 'center',
+    },
+    heading: {
+        fontSize: 30,
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        textShadowColor: 'rgba(0, 0, 0, 0.75)',
+        textShadowOffset: { width: -1, height: 1 },
+        textShadowRadius: 10,
+        marginBottom: 20,
     },
     text: {
         fontSize: 20,

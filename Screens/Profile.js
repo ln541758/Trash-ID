@@ -4,9 +4,13 @@ import {
   Modal, Alert
 } from 'react-native';
 import React, { useState } from 'react';
-import { getAuth, reauthenticateWithCredential, EmailAuthProvider, updatePassword } from 'firebase/auth';
-import { registerUserInfo } from '../Firestore/firestoreSetup';
+import { reauthenticateWithCredential,
+  EmailAuthProvider, updatePassword } from 'firebase/auth';
+import { registerUserInfo } from '../Firestore/firestoreHelper';
 import { auth } from '../Firestore/firestoreSetup'
+import { onSnapshot, doc } from 'firebase/firestore';
+import { database } from '../Firestore/firestoreSetup';
+import { useEffect } from 'react';
 
 export default function Profile({ navigation }) {
   const [username, setUsername] = useState('');
@@ -21,12 +25,14 @@ export default function Profile({ navigation }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(true);
 
+
   const handleSave = async () => {
     if (!isEmailValid) {
       Alert.alert('Invalid email address', 'Please enter a valid email address');
       return;
     }
     let data = { username, email, phone, city, street, zip };
+    console.log('Data:', data);
     const uploadData = await registerUserInfo(auth.currentUser.uid, data);
     navigation.navigate('Home');
   };
@@ -50,27 +56,61 @@ export default function Profile({ navigation }) {
     }
   };
 
+  const isPasswordValid = (password) => {
+    if (password.length < 6) {
+      return false;
+    }
+    const hasLetters = /[a-zA-Z]/.test(password);
+    const hasNumbers = /[0-9]/.test(password);
+    return hasLetters && hasNumbers;
+  };
+
+
   const handleResetPassword = async () => {
     if (newPassword === confirmPassword) {
-      try {
-        // Re-authenticate the user
-        const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPassword);
-        await reauthenticateWithCredential(auth.currentUser, credential);
+      if (isPasswordValid(newPassword)) {
+        try {
+          // Re-authenticate the user
+          if (auth.currentUser && auth.currentUser.email) {
+            const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPassword);
+            await reauthenticateWithCredential(auth.currentUser, credential);
 
-        // Now update the password
-        await updatePassword(auth.currentUser, newPassword);
-        console.log('Password reset successfully');
-        setModalVisible(false);
-        setNewPassword('');
-        setConfirmPassword('');
-        setCurrentPassword('');
-      } catch (error) {
-        console.error('Error re-authenticating or updating password:', error);
+            // Now update the password
+            await updatePassword(auth.currentUser, newPassword);
+            console.log('Password reset successfully');
+            setModalVisible(false);
+            setNewPassword('');
+            setConfirmPassword('');
+            setCurrentPassword('');
+          } else {
+            console.error('Current user is not defined or does not have an email');
+          }
+        } catch (error) {
+          console.error('Error re-authenticating or updating password:', error);
+        }
+      } else {
+        Alert.alert('Invalid Password', 'Password must be at least 6 characters long and cannot be all letters or all numbers.', [{ text: 'OK' }]);
       }
     } else {
       console.error('Passwords do not match');
     }
   };
+
+  useEffect(() => {
+    const unsubscribe = auth.currentUser ? onSnapshot(doc(database, 'trashData', auth.currentUser.uid), (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        setUsername(data.username);
+        setEmail(data.email);
+        setPhone(data.phone);
+        setCity(data.city);
+        setStreet(data.street);
+        setZip(data.zip);
+      }
+    }) : () => {};
+
+    return () => unsubscribe();
+  }, []);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

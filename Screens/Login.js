@@ -7,49 +7,49 @@ import { Alert } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 
 export default function Login() {
-    const [emailVar, setEmailVar] = useState('')
-    const [passwordVar, setPasswordVar] = useState('')
-    const navigation = useNavigation()
-    function handleNavigation() {
-        navigation.replace('Signup')
+  const [emailVar, setEmailVar] = useState('')
+  const [passwordVar, setPasswordVar] = useState('')
+  const navigation = useNavigation()
+  function handleNavigation() {
+    navigation.replace('Signup')
+  }
+  const handleLogin = async () => {
+    if (!emailVar || !passwordVar) {
+      Alert.alert('Please enter email and password')
+      return;
     }
-    const handleLogin = async () => {
-        if ( !emailVar || !passwordVar ) {
-            Alert.alert('Please enter email and password')
-            return;
-        }
-        try{
-            const userCred = await signInWithEmailAndPassword(auth, emailVar, passwordVar);
-        } catch (error) {
-            console.log('error', error)
-            Alert.alert('Failed to login')
-        }
+    try {
+      const userCred = await signInWithEmailAndPassword(auth, emailVar, passwordVar);
+    } catch (error) {
+      console.log('error', error)
+      Alert.alert('Failed to login')
     }
+  }
   return (
     <View style={styles.container}>
-
+      <Text style={styles.heading}>TrashID</Text>
       <Text style={styles.text}>Email address</Text>
       <TextInput style={styles.input}
-      placeholder='Email'
-      value={emailVar}
-      secureTextEntry={false}
-      onChangeText={setEmailVar} />
+        placeholder='Email'
+        value={emailVar}
+        secureTextEntry={false}
+        onChangeText={setEmailVar} />
 
       <Text style={styles.text}>Password</Text>
       <TextInput style={styles.input}
-      secureTextEntry={true}
-      placeholder='Password'
-      value={passwordVar}
-      onChangeText={setPasswordVar} />
+        secureTextEntry={true}
+        placeholder='Password'
+        value={passwordVar}
+        onChangeText={setPasswordVar} />
 
       {/* button section */}
       <TouchableOpacity style={styles.buttonStyle}
-      onPress={handleLogin}>
+        onPress={handleLogin}>
         <Text style={[styles.text, { fontSize: 15 }]}>Login</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.buttonStyle}
-      onPress={handleNavigation}>
+      <TouchableOpacity style={[styles.buttonStyle, { backgroundColor: 'lightcoral' }]}
+        onPress={handleNavigation}>
         <Text style={[styles.text, { fontSize: 15 }]}>New user? Create an account</Text>
       </TouchableOpacity>
     </View>
@@ -61,23 +61,33 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'lightblue',
     justifyContent: 'center',
+  },
+  heading: {
+    fontSize: 30,
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
+    marginBottom: 80,
 },
-text: {
+  text: {
     fontSize: 20,
     color: 'black',
     fontWeight: 'bold',
     margin: 0,
     paddingLeft: 10,
-},
-input: {
+  },
+  input: {
     borderWidth: 1,
     borderRadius: 5,
     width: '90%',
     padding: 10,
     margin: 10,
     fontSize: 20,
-},
-buttonStyle: {
+  },
+  buttonStyle: {
     backgroundColor: 'lightgreen',
     padding: 10,
     margin: 10,
@@ -85,5 +95,5 @@ buttonStyle: {
     borderRadius: 5,
     width: '70%',
     alignSelf: 'center',
-},
+  },
 })
