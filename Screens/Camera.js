@@ -26,15 +26,14 @@ export default function CameraScreen({ navigation }) {
   const takePhoto = async () => {
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) return;
-  
+
     try {
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 1,
+        quality: 0.1,
       });
-  
+
       if (!result.canceled) {
         setImageUri(result.assets[0].uri);
       }

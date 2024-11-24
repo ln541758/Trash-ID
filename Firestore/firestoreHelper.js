@@ -5,22 +5,27 @@ import {
 } from "firebase/firestore";
 import { database } from "./firestoreSetup";
 
-export async function writeToDB(collectionName, data) {
+export async function writeToDB(userID, subCollectionName, data) {
     try {
-        const docRef = await addDoc(collection(database, collectionName), data);
+        const userDataRef = doc(database, 'trashData', userID);
+        const trashDataRef = collection(userDataRef, subCollectionName);
+        const docRef = await addDoc(trashDataRef, data);
     } catch (e) {
         console.error("Error adding document: ", e);
     }
 }
 
-export async function deleteDB(deletedId, collectionName) {
+export async function deleteDB(userID, subcollectionName, docID) {
     try {
-        const rmDoc = await deleteDoc(doc(database, collectionName, deletedId));
+        const docRef = doc(database, 'trashData', userID, subcollectionName, docID);
+
+        await deleteDoc(docRef);
+
+        console.log("Document deleted successfully with ID: ", docID);
     } catch (e) {
         console.error("Error deleting document: ", e);
     }
 }
-
 
 export async function getAllDocs(collectionName, fieldName) {
     try {
@@ -45,10 +50,22 @@ export async function getAllDocs(collectionName, fieldName) {
     }
 }
 
-export async function updateDB(collectionName, docId, data) {
+export async function updateDB(userID, subcollectionName, docID, updatedData) {
     try {
-        const docRef = await updateDoc(doc(database, collectionName, docId), data);
+        const docRef = doc(database, 'trashData', userID, subcollectionName, docID);
+        await updateDoc(docRef, updatedData);
+
+        console.log("Document updated successfully with ID: ", docID);
     } catch (e) {
         console.error("Error updating document: ", e);
+    }
+}
+
+export async function registerUserInfo(uid, data) {
+    try {
+        const docRef = doc(database, 'trashData', uid);
+        await setDoc(docRef, data, { merge: true });
+    } catch (e) {
+        console.error("Error creating user entry: ", e);
     }
 }

@@ -13,19 +13,22 @@ import {
 import { Entypo } from "@expo/vector-icons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { database } from "../Firestore/firestoreSetup";
-import { collection, onSnapshot } from "firebase/firestore";
+import { database, auth } from "../Firestore/firestoreSetup";
+import { collection } from "firebase/firestore";
 import { deleteDB } from "../Firestore/firestoreHelper";
+import { doc } from "firebase/firestore";
+import { onSnapshot } from "firebase/firestore";
 
 
-const ItemList = ({ navigation, route }) => {
+
+function ItemList({ navigation, route }) {
   const [items, setItems] = useState([]);
   const categoryImage = {
     "Recycling": require("../assets/Recyclable.jpg"),
     "Organic": require("../assets/Organic.jpg"),
     "Hazardous": require("../assets/Hazardous.jpg"),
     "Garbage": require("../assets/Garbage.jpg"),
-  }
+  };
 
   const searchQuery = route.params?.searchQuery || "";
   const isAscending = route.params?.isAscending ?? true;
@@ -43,10 +46,10 @@ const ItemList = ({ navigation, route }) => {
         {
           text: "Delete",
           onPress: async () => {
-            await deleteDB(id, "trashData");
+            await deleteDB(auth.currentUser.uid, "trash", id);
           },
         },
-      ],
+      ]
 
     );
   };
@@ -54,40 +57,50 @@ const ItemList = ({ navigation, route }) => {
 
   // add listener to fetch data from firestore
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(database, "trashData"),
-    (snapshot) => {
-      let newArr = [];
-      let newEntry = {};
-      snapshot.forEach((doc) => {
-        if (doc.data().trashCategory == route.params.category) {
-        newEntry = doc.data();
-        newEntry.id = doc.id;
-        newArr.push(newEntry);
-        }
-      });
-      setItems(newArr);
-    });
+    const docRef = doc(database, "trashData", auth.currentUser.uid);
+
+    const unsubscribe = onSnapshot(
+      collection(docRef, "trash"),
+      (subCollectionSnapshot) => {
+        let newArr = [];
+        subCollectionSnapshot.forEach((subDoc) => {
+          const subDocData = subDoc.data();
+          if (subDocData.trashCategory === route.params.category) {
+            const newEntry = {
+              ...subDocData,
+              id: subDoc.id,
+            };
+            newArr.push(newEntry);
+          }
+        });
+        setItems(newArr); // Update the state to refresh the screen
+      },
+      (error) => {
+        console.error("Error listening to trashData subcollection:", error);
+      }
+    );
+
     return () => {
       unsubscribe();
     };
   }, []);
 
 
+
+
   useEffect(() => {
     let filteredItems = items;
 
     if (searchQuery) {
-      filteredItems = filteredItems.filter((item) =>
-        item.trashType
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase())
+      filteredItems = filteredItems.filter((item) => item.trashType
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
       );
     }
 
-    filteredItems = filteredItems.sort((a, b) =>
-      isAscending
-        ? a.trashType.localeCompare(b.trashType)
-        : b.trashType.localeCompare(a.trashType)
+    filteredItems = filteredItems.sort((a, b) => isAscending
+      ? a.trashType.localeCompare(b.trashType)
+      : b.trashType.localeCompare(a.trashType)
     );
 
     setItems(filteredItems);
@@ -96,13 +109,11 @@ const ItemList = ({ navigation, route }) => {
   function renderItem({ item }) {
     return (
       <TouchableOpacity
-        onPress={() =>
-          navigation.navigate("ItemEditor", {
-            itemObj: item,
-            isEditMode: false,
-            category: route.params.category,
-          })
-        }
+        onPress={() => navigation.navigate("ItemEditor", {
+          itemObj: item,
+          isEditMode: false,
+          category: route.params.category,
+        })}
         style={styles.itemContainer}
       >
         <Image source={categoryImage[route.params.category]
@@ -113,13 +124,11 @@ const ItemList = ({ navigation, route }) => {
 
         <View style={styles.actionButtons}>
           <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("ItemEditor", {
-                itemObj: item,
-                isEditMode: true,
-                category: route.params.category,
-              })
-            }
+            onPress={() => navigation.navigate("ItemEditor", {
+              itemObj: item,
+              isEditMode: true,
+              category: route.params.category,
+            })}
             style={styles.addButton}
           >
             <FontAwesome6 name="edit" size={24} color="black" />
@@ -127,8 +136,9 @@ const ItemList = ({ navigation, route }) => {
 
           <TouchableOpacity
             style={styles.addButton}
-            onPress={() => {handleDelete(item.id)
-            }}
+            onPress={() => {
+              handleDelete(item.id);
+            } }
           >
             <AntDesign name="delete" size={24} color="black" />
           </TouchableOpacity>
@@ -147,8 +157,7 @@ const ItemList = ({ navigation, route }) => {
         <TextInput
           style={styles.searchBar}
           placeholder="Search"
-          onChangeText={(text) => navigation.setParams({ searchQuery: text })}
-        />
+          onChangeText={(text) => navigation.setParams({ searchQuery: text })} />
         <Pressable
           onPress={handleNotification}
           style={styles.notificationButton}
@@ -161,11 +170,10 @@ const ItemList = ({ navigation, route }) => {
         data={items}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
+        ItemSeparatorComponent={() => <View style={styles.separator} />} />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {

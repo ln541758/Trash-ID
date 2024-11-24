@@ -6,6 +6,9 @@ import Categories from "./Categories";
 import Map from "./Map";
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { Entypo } from "@expo/vector-icons";
+import { TouchableOpacity } from "react-native-gesture-handler";
+import { useNavigation } from "@react-navigation/native";
+
 
 export default function Home({ navigation }) {
   const Tab = createBottomTabNavigator();
@@ -31,11 +34,29 @@ export default function Home({ navigation }) {
         tabBarInactiveTintColor: "gray",
       })}
     >
-      <Tab.Screen name="Categories" component={Categories} />
+      <Tab.Screen name="Categories" component={Categories} options={({ route, navigation }) => ({
+        headerLeft: () => (
+          <View style={styles.headerRightContainer}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Profile")}
+              style={styles.profileIcon}>
+              <FontAwesome6 name="user" size={24} color="black" />
+            </TouchableOpacity>
+          </View>)
+      })} />
       <Tab.Screen name="Camera" component={Camera} />
       <Tab.Screen name="Map" component={Map} />
     </Tab.Navigator>
   );
 }
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  headerRightContainer: {
+    flexDirection: "row",
+    marginLeft: 10,
+    padding: 10,
+  },
+  profileIcon: {
+    marginRLeft: 10,
+  },
+});

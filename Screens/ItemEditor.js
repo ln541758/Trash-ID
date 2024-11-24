@@ -14,7 +14,8 @@ import Checkbox from "expo-checkbox";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { getAllDocs, updateDB, writeToDB } from "../Firestore/firestoreHelper";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { storage } from "../Firestore/firestoreSetup";
+import { storage, auth } from "../Firestore/firestoreSetup";
+
 
 export default function ItemEditor({ navigation, route }) {
   const [categoryKey, setCategoryKey] = useState(route.params.category);
@@ -35,6 +36,7 @@ export default function ItemEditor({ navigation, route }) {
   const [isNotificationEnabled, setIsNotificationEnabled] = useState(
     currentItem ? currentItem.notification : false
   );
+  const [imageChanged, setImageChanged] = useState(false);
   const [trashKey, setTrashKey] = useState([
     { label: "Recycling", value: "Recycling" },
     { label: "Organic", value: "Organic" },
@@ -74,7 +76,6 @@ export default function ItemEditor({ navigation, route }) {
     }
     try {
       let result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.1,
@@ -82,6 +83,7 @@ export default function ItemEditor({ navigation, route }) {
 
       if (!result.canceled) {
         setImage(result.assets[0].uri);
+        setImageChanged(true);
       }
     } catch (e) {
       console.error("Error reading image: ", e);
@@ -144,22 +146,29 @@ export default function ItemEditor({ navigation, route }) {
   // Function to handle Save button click
   const handleSave = async () => {
     // Save the data to the database
-    let uri = "";
-    if (image) {
-      uri = await uploadImage(image);
-    }
+    let uri = currentItem?.source || "";
+
+  // Only upload a new image if imageChanged is true
+  if (imageChanged && image) {
+    uri = await uploadImage(image);
+  }
     let updatedItem = {
-      source: image ? uri : "",
+      source: uri,
       trashType: selectedCategory,
       trashDate: date,
       notification: isNotificationEnabled,
       trashCategory: categoryKey,
     };
     if (currentItem) {
-      await updateDB("trashData", currentItem.id, updatedItem);
+      await updateDB(auth.currentUser.uid,
+        "trash",
+        currentItem.id,
+        updatedItem);
     } else {
-      await writeToDB("trashData", updatedItem);
+      await writeToDB(auth.currentUser.uid, "trash", updatedItem);
     }
+    // reset the imageChanged state
+    setImageChanged(false);
     // passing the category to the next screen
     navigation.navigate("ItemList", { category: categoryKey });
   };
