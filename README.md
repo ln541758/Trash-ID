@@ -30,12 +30,6 @@ Easily create, view, update, or delete information related to your waste managem
 
 #### Collection 1: trash data:
 - Collection name: trashData <br>
-- Document ID: Auto-generated
-    - **Fields:**<br>
-    - trashID(string): Unique identifier for the trash item,<br>
-    - trashType(string): Type of trash (e.g., Tetra, Plastic, Glass),<br>
-    - trashDate(string): Date when the trash was recorded<br>
-    - source(string): URI of the image related to the item<br>
 - Document ID: userInfo( will be added in authentication component)<br>
     - **Fields:**<br>
     - username(string): Username of the user,<br>
@@ -49,6 +43,13 @@ Easily create, view, update, or delete information related to your waste managem
     - geo:<br>
         - lat(string): Latitude,<br>
         - long(string): Longitude,<br>
+    - **sub-collection: trash**<br>
+    -  **Fields:**<br>
+    - Document ID: Auto-generated
+      - trashID(string): Unique identifier for the trash item,<br>
+      - trashType(string): Type of trash (e.g., Tetra, Plastic, Glass),<br>
+      - trashDate(string): Date when the trash was recorded<br>
+      - source(string): URI of the image related to the item<br>
 
 - **CRUD Operations (in collection 1: trashData):**<br>
     - Create: Post new waste item<br>
@@ -68,7 +69,7 @@ Easily create, view, update, or delete information related to your waste managem
     - justGarbage(array): Type of general garbage keywords,<br>
 - **NO CRUD Operations in collection 2**
 
-#### Collection 3: Recycle Center locations (will be retrieved from the map API):
+#### Collection 3: Recycle Center locations (will be built using API):
 - Document ID: Auto-generated
 - **Fields:**
 - recycleLocation(array)<br>
@@ -114,7 +115,7 @@ Easily create, view, update, or delete information related to your waste managem
 ### Contributions Summary:
 
 **Hao Pei:**<br>
-Implemented authentication and connection flow with Firebase Firestore, including CRUD operations with the database. Developed item editor, item list, item info, and categories screens with full functionality. Utilized Firebase authentication with email and password to ensure secure access to protected resources. Designed a login screen with features like password strength validation and account recovery options. Anonymous users can view limited data, while account and profile details are available to logged-in users. 
+Implemented authentication and connection flow with Firebase Firestore, including CRUD operations with the database. Developed item editor, item list, item info, and categories screens with full functionality. Utilized Firebase authentication with email and password to ensure secure access to protected resources. Designed a login screen with features like password strength validation and account recovery options. Anonymous users does not have access to the data or use of APP, while account and profile details are available to logged-in users. Implemented the profile screen to enable users to view and edit their account information. Users can also log out of the app securely and reset their password if needed.
 
 **Yin-Shan Lin:**<br>
 Set up the initial project structure and navigation using React Navigation. Completed CRUD operations in the application. Developed and styled the camera screen, item editor screen, item list screen, item info screen, and categories screen, including functionality implementation. Successfully implemented and handled camera permissions and usage, as well as location permissions and interactive map functionality with features such as displaying the user's current location, searching for places, and navigating through map markers.
@@ -134,6 +135,14 @@ Camera
 
 ## API keys
 - Google Map: AIzaSyBSt6HZMzYzGejS-RnFl1o_-nyCEHc5ks0
+- Firebase:
+- - EXPO_PUBLIC_apiKey= "AIzaSyCQV8-VrV2wtbUHZ-3ynnK7pyLqxqt4llo"
+- - EXPO_PUBLIC_authDomain= "trash-id-97dea.firebaseapp.com"
+- - EXPO_PUBLIC_projectId= "trash-id-97dea"
+- - EXPO_PUBLIC_storageBucket= "trash-id-97dea.firebasestorage.app"
+- - EXPO_PUBLIC_messagingSenderId= "139436150086"
+- - EXPO_PUBLIC_appId= "1:139436150086:web:9e5d357249b25b4bd7a947"
+- - EXPO_PUBLIC_measurementId= "G-4ZP2Q11RED"
 
 
 ## Version Control and Collaboration
@@ -143,4 +152,4 @@ All team members have cloned the repository, created their own branches for feat
 If there are any contributions not directly reflected in GitHub commits (e.g., planning and design discussions), they are noted here along with the responsible team members.
 
 ## Demo Video
-[Demo](https://www.youtube.com/watch?v=ofpySK6tdEg)
+[Demo](https://youtu.be/QXBIjHk2NsU)
