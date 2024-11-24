@@ -133,16 +133,6 @@ Map
 Camera
 ![Camera](assets/Camera.png)
 
-## API keys
-- Google Map: AIzaSyBSt6HZMzYzGejS-RnFl1o_-nyCEHc5ks0
-- Firebase:
-- - EXPO_PUBLIC_apiKey= "AIzaSyCQV8-VrV2wtbUHZ-3ynnK7pyLqxqt4llo"
-- - EXPO_PUBLIC_authDomain= "trash-id-97dea.firebaseapp.com"
-- - EXPO_PUBLIC_projectId= "trash-id-97dea"
-- - EXPO_PUBLIC_storageBucket= "trash-id-97dea.firebasestorage.app"
-- - EXPO_PUBLIC_messagingSenderId= "139436150086"
-- - EXPO_PUBLIC_appId= "1:139436150086:web:9e5d357249b25b4bd7a947"
-- - EXPO_PUBLIC_measurementId= "G-4ZP2Q11RED"
 
 
 ## Version Control and Collaboration
