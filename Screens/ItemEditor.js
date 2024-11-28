@@ -44,6 +44,14 @@ export default function ItemEditor({ navigation, route }) {
     { label: "Garbage", value: "Garbage" },
   ]);
 
+  const labelToCategoryMap = {
+    Recycling: ["Plastic", "Paper", "Cardboard", "Newspaper", "Envelope", "Metal"],
+    Organic: ["Fruit", "Vegetable", "Egg", "Coffee grounds"],
+    Hazardous: ["Battery", "Tetra", "Lithium-ion battery", "Alkaline battery", "Chemical container", "Paint can", "Aerosol can"],
+    Garbage: ["Pencil", "Styrofoam", "Cigarette butt", "Leaves"],
+  };
+  
+
   // Function to verify permission
   async function verifyPermission() {
     if (response.granted) {
@@ -188,6 +196,34 @@ export default function ItemEditor({ navigation, route }) {
       },
     ]);
   };
+
+  useEffect(() => {
+    const categorizedItems = items.map((item) => {
+      for (const category in labelToCategoryMap) {
+        if (labelToCategoryMap[category].includes(item.trashType)) {
+          return { ...item, category };
+        }
+      }
+      return { ...item, category: "Uncategorized" };
+    });
+  
+    let filteredItems = categorizedItems;
+  
+    if (searchQuery) {
+      filteredItems = filteredItems.filter((item) =>
+        item.trashType.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+  
+    filteredItems = filteredItems.sort((a, b) =>
+      isAscending
+        ? a.trashType.localeCompare(b.trashType)
+        : b.trashType.localeCompare(a.trashType)
+    );
+  
+    setItems(filteredItems);
+  }, [searchQuery, isAscending]);
+  
 
   return (
     <View style={styles.container}>
