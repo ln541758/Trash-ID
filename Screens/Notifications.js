@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, View, Button, Alert } from "react-native";
 import * as Notifications from "expo-notifications";
+import { fetchEnabledItems } from "../Firestore/firestoreHelper";
 
 // Configure notification behavior
 Notifications.setNotificationHandler({
@@ -32,6 +33,17 @@ export default function NotificationScreen() {
     const hasPermission = await requestNotificationPermission();
     if (!hasPermission) return;
 
+    // Fetch all items with enabled notifications
+    const enabledItems = await fetchEnabledItems();
+
+    if (enabledItems.length === 0) {
+      Alert.alert("No Items", "No items have notifications enabled.");
+      return;
+    }
+
+    // Create a message listing the items
+    const itemsMessage = `Items to manage: ${enabledItems.join(", ")}`;
+
     // Cancel all previous notifications to avoid duplicates
     await Notifications.cancelAllScheduledNotificationsAsync();
 
@@ -39,10 +51,10 @@ export default function NotificationScreen() {
     await Notifications.scheduleNotificationAsync({
       content: {
         title: "Waste Sorting Reminder",
-        body: "Today is Wednesday, please manage your waste at 7:30 PM!",
+        body: `Today is Wednesday. ${itemsMessage}`,
       },
       trigger: {
-        weekday: 4, // Wednesday (1 = Sunday, 2 = Monday, ...)
+        weekday: 4, // Wednesday
         hour: 19,
         minute: 30,
         repeats: true, // Repeat every week
@@ -53,7 +65,7 @@ export default function NotificationScreen() {
     await Notifications.scheduleNotificationAsync({
       content: {
         title: "Waste Sorting Reminder",
-        body: "Today is Sunday, please manage your waste at 7:30 PM!",
+        body: `Today is Sunday. ${itemsMessage}`,
       },
       trigger: {
         weekday: 1, // Sunday
@@ -81,10 +93,22 @@ export default function NotificationScreen() {
     }
   };
 
-  // Schedule a test notification
+  // Schedule a test notification based on enabled items
   const scheduleTestNotification = async () => {
     const hasPermission = await requestNotificationPermission();
     if (!hasPermission) return;
+
+    // Fetch all items with enabled notifications
+    const enabledItems = await fetchEnabledItems();
+    console.log("Enabled Items:", enabledItems);
+
+    if (enabledItems.length === 0) {
+      Alert.alert("No Items", "No items have notifications enabled.");
+      return;
+    }
+
+    // Create a message listing the items
+    const itemsMessage = `Test Items to manage: ${enabledItems.join(", ")}`;
 
     // Cancel all previous notifications to avoid duplicates
     await Notifications.cancelAllScheduledNotificationsAsync();
@@ -93,16 +117,17 @@ export default function NotificationScreen() {
     await Notifications.scheduleNotificationAsync({
       content: {
         title: "Test Notification",
-        body: "This is a test notification triggered after 10 seconds.",
+        body: `This is a test notification. ${itemsMessage}`,
       },
       trigger: {
-        seconds: 10, // Trigger after 10 seconds
+        seconds: 3, // Trigger after 3 seconds
+        type: "timeInterval",
       },
     });
 
     Alert.alert(
       "Test Notification Scheduled",
-      "A notification will appear in 10 seconds."
+      "A notification will appear in 10 seconds with the items listed."
     );
   };
 
