@@ -1,13 +1,8 @@
-import React, {useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  Image,
-} from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import Notif from "../Components/Notif";
+import { analyzeImage } from "../Components/apiHelper";
 
 export default function CameraScreen({ navigation }) {
   const [imageUri, setImageUri] = useState(null);
@@ -36,6 +31,15 @@ export default function CameraScreen({ navigation }) {
 
       if (!result.canceled) {
         setImageUri(result.assets[0].uri);
+
+        const labels = await analyzeImage(imageUri);
+        console.log("Labels:", labels);
+
+        navigation.navigate("ItemEditor", {
+          isEditMode: true,
+          imageUri: imageUri,
+          labels,
+        });
       }
     } catch (error) {
       console.error("Error launching camera:", error);
@@ -53,7 +57,7 @@ export default function CameraScreen({ navigation }) {
       {/* Header */}
       <View style={styles.headerContainer}>
         <Text style={styles.headerTitle}>Take a Photo</Text>
-        <Notif navigation={navigation}/>
+        <Notif navigation={navigation} />
       </View>
 
       {/* Image Preview */}

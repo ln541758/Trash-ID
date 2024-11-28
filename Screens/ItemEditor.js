@@ -16,7 +16,6 @@ import { getAllDocs, updateDB, writeToDB } from "../Firestore/firestoreHelper";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { storage, auth } from "../Firestore/firestoreSetup";
 
-
 export default function ItemEditor({ navigation, route }) {
   const [categoryKey, setCategoryKey] = useState(route.params.category);
   const isEditMode = route.params?.isEditMode ?? true;
@@ -45,12 +44,26 @@ export default function ItemEditor({ navigation, route }) {
   ]);
 
   const labelToCategoryMap = {
-    Recycling: ["Plastic", "Paper", "Cardboard", "Newspaper", "Envelope", "Metal"],
+    Recycling: [
+      "Plastic",
+      "Paper",
+      "Cardboard",
+      "Newspaper",
+      "Envelope",
+      "Metal",
+    ],
     Organic: ["Fruit", "Vegetable", "Egg", "Coffee grounds"],
-    Hazardous: ["Battery", "Tetra", "Lithium-ion battery", "Alkaline battery", "Chemical container", "Paint can", "Aerosol can"],
+    Hazardous: [
+      "Battery",
+      "Tetra",
+      "Lithium-ion battery",
+      "Alkaline battery",
+      "Chemical container",
+      "Paint can",
+      "Aerosol can",
+    ],
     Garbage: ["Pencil", "Styrofoam", "Cigarette butt", "Leaves"],
   };
-  
 
   // Function to verify permission
   async function verifyPermission() {
@@ -153,32 +166,44 @@ export default function ItemEditor({ navigation, route }) {
 
   // Function to handle Save button click
   const handleSave = async () => {
-    // Save the data to the database
     let uri = currentItem?.source || "";
 
-  // Only upload a new image if imageChanged is true
-  if (imageChanged && image) {
-    uri = await uploadImage(image);
-  }
-    let updatedItem = {
+    if (imageChanged && image) {
+      uri = await uploadImage(image);
+    }
+
+    const matchedCategory = route.params?.labels
+      ? route.params.labels.find((label) => {
+          for (const category in labelToCategoryMap) {
+            if (labelToCategoryMap[category].includes(label)) {
+              return category;
+            }
+          }
+          return null;
+        })
+      : categoryKey;
+
+    const updatedItem = {
       source: uri,
-      trashType: selectedCategory,
+      trashType: selectedCategory || route.params?.labels[0],
       trashDate: date,
       notification: isNotificationEnabled,
-      trashCategory: categoryKey,
+      trashCategory: matchedCategory || "Uncategorized",
     };
+
     if (currentItem) {
-      await updateDB(auth.currentUser.uid,
+      await updateDB(
+        auth.currentUser.uid,
         "trash",
         currentItem.id,
-        updatedItem);
+        updatedItem
+      );
     } else {
       await writeToDB(auth.currentUser.uid, "trash", updatedItem);
     }
-    // reset the imageChanged state
+
     setImageChanged(false);
-    // passing the category to the next screen
-    navigation.navigate("ItemList", { category: categoryKey });
+    navigation.navigate("ItemList", { category: matchedCategory });
   };
 
   // Function to handle Cancel button click
@@ -198,32 +223,30 @@ export default function ItemEditor({ navigation, route }) {
   };
 
   useEffect(() => {
-    const categorizedItems = items.map((item) => {
+    if (route.params?.labels) {
+      const detectedLabels = route.params.labels;
+
+      let matchedCategory = "Uncategorized";
+      let matchedType = detectedLabels[0];
+
       for (const category in labelToCategoryMap) {
-        if (labelToCategoryMap[category].includes(item.trashType)) {
-          return { ...item, category };
+        if (
+          detectedLabels.some((label) =>
+            labelToCategoryMap[category].includes(label)
+          )
+        ) {
+          matchedCategory = category;
+          break;
         }
       }
-      return { ...item, category: "Uncategorized" };
-    });
-  
-    let filteredItems = categorizedItems;
-  
-    if (searchQuery) {
-      filteredItems = filteredItems.filter((item) =>
-        item.trashType.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+
+      console.log("Matched Category:", matchedCategory);
+      console.log("Matched Type:", matchedType);
+
+      setCategoryKey(matchedCategory);
+      setSelectedCategory(matchedType);
     }
-  
-    filteredItems = filteredItems.sort((a, b) =>
-      isAscending
-        ? a.trashType.localeCompare(b.trashType)
-        : b.trashType.localeCompare(a.trashType)
-    );
-  
-    setItems(filteredItems);
-  }, [searchQuery, isAscending]);
-  
+  }, [route.params?.labels]);
 
   return (
     <View style={styles.container}>
