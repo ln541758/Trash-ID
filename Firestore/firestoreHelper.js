@@ -80,8 +80,6 @@ export async function fetchEnabledItems() {
   try {
     const items = [];
     const uid = auth.currentUser?.uid;
-    console.log("Current User:", auth.currentUser);
-    
     if (!uid) {
       console.error("User is not authenticated.");
       return [];
@@ -100,8 +98,6 @@ export async function fetchEnabledItems() {
         console.warn("Document missing 'trashType' field:", doc.id);
       }
     });
-
-    console.log("Enabled items:", items); // Debug log
     return items;
   } catch (e) {
     console.error("Error fetching enabled items: ", e);
