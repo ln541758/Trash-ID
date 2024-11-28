@@ -16,8 +16,10 @@ import { getAllDocs, updateDB, writeToDB } from "../Firestore/firestoreHelper";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { storage, auth } from "../Firestore/firestoreSetup";
 
-
 export default function ItemEditor({ navigation, route }) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [items, setItems] = useState([]);
+  const [isAscending, setIsAscending] = useState(true);
   const [categoryKey, setCategoryKey] = useState(route.params.category);
   const isEditMode = route.params?.isEditMode ?? true;
   const currentItem = route.params.itemObj;
@@ -45,12 +47,26 @@ export default function ItemEditor({ navigation, route }) {
   ]);
 
   const labelToCategoryMap = {
-    Recycling: ["Plastic", "Paper", "Cardboard", "Newspaper", "Envelope", "Metal"],
+    Recycling: [
+      "Plastic",
+      "Paper",
+      "Cardboard",
+      "Newspaper",
+      "Envelope",
+      "Metal",
+    ],
     Organic: ["Fruit", "Vegetable", "Egg", "Coffee grounds"],
-    Hazardous: ["Battery", "Tetra", "Lithium-ion battery", "Alkaline battery", "Chemical container", "Paint can", "Aerosol can"],
+    Hazardous: [
+      "Battery",
+      "Tetra",
+      "Lithium-ion battery",
+      "Alkaline battery",
+      "Chemical container",
+      "Paint can",
+      "Aerosol can",
+    ],
     Garbage: ["Pencil", "Styrofoam", "Cigarette butt", "Leaves"],
   };
-  
 
   // Function to verify permission
   async function verifyPermission() {
@@ -156,10 +172,10 @@ export default function ItemEditor({ navigation, route }) {
     // Save the data to the database
     let uri = currentItem?.source || "";
 
-  // Only upload a new image if imageChanged is true
-  if (imageChanged && image) {
-    uri = await uploadImage(image);
-  }
+    // Only upload a new image if imageChanged is true
+    if (imageChanged && image) {
+      uri = await uploadImage(image);
+    }
     let updatedItem = {
       source: uri,
       trashType: selectedCategory,
@@ -168,10 +184,12 @@ export default function ItemEditor({ navigation, route }) {
       trashCategory: categoryKey,
     };
     if (currentItem) {
-      await updateDB(auth.currentUser.uid,
+      await updateDB(
+        auth.currentUser.uid,
         "trash",
         currentItem.id,
-        updatedItem);
+        updatedItem
+      );
     } else {
       await writeToDB(auth.currentUser.uid, "trash", updatedItem);
     }
@@ -206,24 +224,23 @@ export default function ItemEditor({ navigation, route }) {
       }
       return { ...item, category: "Uncategorized" };
     });
-  
+
     let filteredItems = categorizedItems;
-  
+
     if (searchQuery) {
       filteredItems = filteredItems.filter((item) =>
         item.trashType.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-  
+
     filteredItems = filteredItems.sort((a, b) =>
       isAscending
         ? a.trashType.localeCompare(b.trashType)
         : b.trashType.localeCompare(a.trashType)
     );
-  
+
     setItems(filteredItems);
   }, [searchQuery, isAscending]);
-  
 
   return (
     <View style={styles.container}>
