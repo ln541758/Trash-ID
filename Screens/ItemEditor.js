@@ -15,8 +15,10 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { getAllDocs, updateDB, writeToDB } from "../Firestore/firestoreHelper";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { storage, auth } from "../Firestore/firestoreSetup";
+import RNFS from "react-native-fs";
 
 export default function ItemEditor({ navigation, route }) {
+  const apikey = process.env.EXPO_PUBLIC_mapsApiKey;
   const [searchQuery, setSearchQuery] = useState("");
   const [items, setItems] = useState([]);
   const [isAscending, setIsAscending] = useState(true);
@@ -88,32 +90,75 @@ export default function ItemEditor({ navigation, route }) {
 
   // Function to handle opening the camera
   const pickImage = async () => {
-    if (!isEditMode) return;
     const hasPermission = await verifyPermission();
-    if (!hasPermission) {
-      Alert.alert(
-        "Permission required",
-        "Please grant permission to access the camera",
-        [{ text: "OK" }]
-      );
-      return;
-    }
+    if (!hasPermission) return;
+  
     try {
       let result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.1,
+        quality: 0.5,
       });
-
+  
       if (!result.canceled) {
-        setImage(result.assets[0].uri);
-        setImageChanged(true);
+        console.log("File Path:", result.uri);
+        const visionResponse = await callGoogleVisionAPI(result.uri);
+  
+        if (visionResponse) {
+          const detectedCategories = processVisionResponse(visionResponse);
+          console.log("Detected Categories:", detectedCategories);
+        }
       }
-    } catch (e) {
-      console.error("Error reading image: ", e);
+    } catch (error) {
+      console.error("Error in pickImage:", error);
+    }
+  };
+  
+
+  const callGoogleVisionAPI = async (filePath) => {
+    try {
+      const base64Image = await RNFS.readFile(filePath, "base64");
+      console.log("Base64 Image (from FS):", base64Image.slice(0, 100)); // 检查 Base64
+  
+      const requestBody = {
+        requests: [
+          {
+            image: { content: base64Image },
+            features: [{ type: "LABEL_DETECTION", maxResults: 5 }],
+          },
+        ],
+      };
+  
+      const response = await fetch(
+        `https://vision.googleapis.com/v1/images:annotate?key=${apikey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestBody),
+        }
+      );
+  
+      const jsonResponse = await response.json();
+      console.log("Full API Response:", JSON.stringify(jsonResponse, null, 2));
+      return jsonResponse.responses[0];
+    } catch (error) {
+      console.error("Error in Vision API Call:", error);
+      return null;
     }
   };
 
+  const processVisionResponse = (visionResponse) => {
+    if (
+      visionResponse &&
+      visionResponse.responses &&
+      visionResponse.responses[0].labelAnnotations
+    ) {
+      return visionResponse.responses[0].labelAnnotations[0].description; // Use the top label
+    }
+    return null;
+  };
+
+  
   useEffect(() => {
     async function downloadImage() {
       try {
