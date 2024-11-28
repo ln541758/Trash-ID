@@ -15,7 +15,7 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { getAllDocs, updateDB, writeToDB } from "../Firestore/firestoreHelper";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { storage, auth } from "../Firestore/firestoreSetup";
-import RNFS from "react-native-fs";
+import * as FileSystem from "expo-file-system";
 
 export default function ItemEditor({ navigation, route }) {
   const apikey = process.env.EXPO_PUBLIC_mapsApiKey;
@@ -88,38 +88,77 @@ export default function ItemEditor({ navigation, route }) {
     fetchData();
   }, [categoryKey]);
 
-  // Function to handle opening the camera
+  const convertToBase64 = async (fileUri) => {
+    try {
+      const base64 = await FileSystem.readAsStringAsync(fileUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      return base64;
+    } catch (error) {
+      console.error("Error converting to Base64:", error);
+      return null;
+    }
+  };
+
+  // Function to handle taking a photo and calling Vision API
   const pickImage = async () => {
     const hasPermission = await verifyPermission();
     if (!hasPermission) return;
-  
+
     try {
-      let result = await ImagePicker.launchCameraAsync({
+      const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.5,
       });
-  
+
       if (!result.canceled) {
-        console.log("File Path:", result.uri);
-        const visionResponse = await callGoogleVisionAPI(result.uri);
-  
+        const imageUri = result.assets[0].uri; // Get the file path of the image
+        // console.log("Captured Image URI:", imageUri); // Debugging
+
+        // Call the Vision API with the image URI
+        const visionResponse = await callGoogleVisionAPI(imageUri);
+
+        // Process the API response
         if (visionResponse) {
           const detectedCategories = processVisionResponse(visionResponse);
           console.log("Detected Categories:", detectedCategories);
+        } else {
+          console.log("No valid response from Vision API.");
         }
       }
     } catch (error) {
       console.error("Error in pickImage:", error);
     }
   };
-  
 
-  const callGoogleVisionAPI = async (filePath) => {
-    try {
-      const base64Image = await RNFS.readFile(filePath, "base64");
-      console.log("Base64 Image (from FS):", base64Image.slice(0, 100)); // 检查 Base64
+  const processVisionResponse = (visionResponse) => {
+    if (
+      visionResponse &&
+      visionResponse.labelAnnotations &&
+      visionResponse.labelAnnotations.length > 0
+    ) {
+      return visionResponse.labelAnnotations.map((label) => label.description); // Returns an array of labels
+    }
+    return [];
+  };
   
+  // Function to create requestBody and call Google Vision API
+  const callGoogleVisionAPI = async (fileUri) => {
+    try {
+      // Convert image to Base64
+      const base64Image = await convertToBase64(fileUri);
+
+      if (!base64Image) {
+        throw new Error("Failed to convert image to Base64");
+      }
+
+      // console.log(
+      //   "Base64 Image Content (First 100 chars):",
+      //   base64Image.slice(0, 100)
+      // ); // Debugging
+
+      // Dynamically create the request body
       const requestBody = {
         requests: [
           {
@@ -128,7 +167,10 @@ export default function ItemEditor({ navigation, route }) {
           },
         ],
       };
-  
+
+      // console.log("Request Body:", JSON.stringify(requestBody, null, 2)); // Debugging
+
+      // Make the API request
       const response = await fetch(
         `https://vision.googleapis.com/v1/images:annotate?key=${apikey}`,
         {
@@ -137,9 +179,12 @@ export default function ItemEditor({ navigation, route }) {
           body: JSON.stringify(requestBody),
         }
       );
-  
+
       const jsonResponse = await response.json();
-      console.log("Full API Response:", JSON.stringify(jsonResponse, null, 2));
+      // console.log(
+      //   "Google Vision API Response:",
+      //   JSON.stringify(jsonResponse, null, 2)
+      // ); // Debugging
       return jsonResponse.responses[0];
     } catch (error) {
       console.error("Error in Vision API Call:", error);
@@ -147,18 +192,6 @@ export default function ItemEditor({ navigation, route }) {
     }
   };
 
-  const processVisionResponse = (visionResponse) => {
-    if (
-      visionResponse &&
-      visionResponse.responses &&
-      visionResponse.responses[0].labelAnnotations
-    ) {
-      return visionResponse.responses[0].labelAnnotations[0].description; // Use the top label
-    }
-    return null;
-  };
-
-  
   useEffect(() => {
     async function downloadImage() {
       try {
