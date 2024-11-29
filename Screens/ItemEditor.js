@@ -17,6 +17,9 @@ import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { storage, auth } from "../Firestore/firestoreSetup";
 
 export default function ItemEditor({ navigation, route }) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [items, setItems] = useState([]);
+  const [isAscending, setIsAscending] = useState(true);
   const [categoryKey, setCategoryKey] = useState(route.params.category);
   const isEditMode = route.params?.isEditMode ?? true;
   const currentItem = route.params.itemObj;
@@ -239,14 +242,25 @@ export default function ItemEditor({ navigation, route }) {
           break;
         }
       }
+      return { ...item, category: "Uncategorized" };
+    });
 
-      console.log("Matched Category:", matchedCategory);
-      console.log("Matched Type:", matchedType);
+    let filteredItems = categorizedItems;
 
-      setCategoryKey(matchedCategory);
-      setSelectedCategory(matchedType);
+    if (searchQuery) {
+      filteredItems = filteredItems.filter((item) =>
+        item.trashType.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
-  }, [route.params?.labels]);
+
+    filteredItems = filteredItems.sort((a, b) =>
+      isAscending
+        ? a.trashType.localeCompare(b.trashType)
+        : b.trashType.localeCompare(a.trashType)
+    );
+
+    setItems(filteredItems);
+  }, [searchQuery, isAscending]);
 
   return (
     <View style={styles.container}>
