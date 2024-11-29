@@ -12,7 +12,7 @@ import * as ImagePicker from "expo-image-picker";
 import DropDownPicker from "react-native-dropdown-picker";
 import Checkbox from "expo-checkbox";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { getAllDocs, updateDB, writeToDB } from "../Firestore/firestoreHelper";
+import { getAllDocs, updateDB, writeToDB, fetchTrashKeyMap } from "../Firestore/firestoreHelper";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { storage, auth } from "../Firestore/firestoreSetup";
 
@@ -42,28 +42,30 @@ export default function ItemEditor({ navigation, route }) {
     { label: "Hazardous", value: "Hazardous" },
     { label: "Garbage", value: "Garbage" },
   ]);
+  const [labelToCategoryMap, setLabelToCategoryMap] = useState({});
 
-  const labelToCategoryMap = {
-    Recycling: [
-      "Plastic",
-      "Paper",
-      "Cardboard",
-      "Newspaper",
-      "Envelope",
-      "Metal",
-    ],
-    Organic: ["Fruit", "Vegetable", "Egg", "Coffee grounds"],
-    Hazardous: [
-      "Battery",
-      "Tetra",
-      "Lithium-ion battery",
-      "Alkaline battery",
-      "Chemical container",
-      "Paint can",
-      "Aerosol can",
-    ],
-    Garbage: ["Pencil", "Styrofoam", "Cigarette butt", "Leaves"],
-  };
+  // const labelToCategoryMap = {
+  //   Recycling: [
+  //     "plastic",
+  //     "paper",
+  //     "cardboard",
+  //     "newspaper",
+  //     "envelope",
+  //     "metal",
+  //     "cloth"
+  //   ],
+  //   Organic: ["fruit", "vegetable", "egg", "coffee grounds"],
+  //   Hazardous: [
+  //     "battery",
+  //     "tetra",
+  //     "lithium-ion battery",
+  //     "alkaline battery",
+  //     "chemical container",
+  //     "paint can",
+  //     "aerosol can",
+  //   ],
+  //   Garbage: ["Pencil", "Styrofoam", "Cigarette butt", "Leaves"],
+  // };
 
   // Function to verify permission
   async function verifyPermission() {
@@ -191,6 +193,10 @@ export default function ItemEditor({ navigation, route }) {
       trashCategory: matchedCategory || "Uncategorized",
     };
 
+    if (!updatedItem.trashDate) {
+      Alert.alert("Invalid Date", "Please select a valid date", [{ text: "OK" }]);
+      return;
+    }
     if (currentItem) {
       await updateDB(
         auth.currentUser.uid,
@@ -222,20 +228,29 @@ export default function ItemEditor({ navigation, route }) {
     ]);
   };
 
+  useEffect( () => {
+    const fetchTrashMap = async () => {
+      const labelToCategoryMapTemp = await fetchTrashKeyMap();
+      setLabelToCategoryMap(labelToCategoryMapTemp);
+    };
+    fetchTrashMap();
+
+  }, []);
+
   useEffect(() => {
-    if (route.params?.labels) {
+    if (route.params?.labels && labelToCategoryMap) {
       const detectedLabels = route.params.labels;
 
       let matchedCategory = "Uncategorized";
       let matchedType = detectedLabels[0];
 
       for (const category in labelToCategoryMap) {
-        if (
-          detectedLabels.some((label) =>
+        const matchedLabel = detectedLabels.find((label) =>
             labelToCategoryMap[category].includes(label)
           )
-        ) {
+          if (matchedLabel) {
           matchedCategory = category;
+          matchedType = matchedLabel;
           break;
         }
       }
@@ -243,10 +258,16 @@ export default function ItemEditor({ navigation, route }) {
       console.log("Matched Category:", matchedCategory);
       console.log("Matched Type:", matchedType);
 
+      // when the detected label is not in the category map
+      if (matchedCategory === "Uncategorized") {
+        setCategoryKey("Garbage");
+        setSelectedCategory("others");
+      } else {
       setCategoryKey(matchedCategory);
       setSelectedCategory(matchedType);
+      }
     }
-  }, [route.params?.labels]);
+  }, [route.params?.labels, labelToCategoryMap]);
 
   return (
     <View style={styles.container}>
@@ -359,6 +380,10 @@ export default function ItemEditor({ navigation, route }) {
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
             <Text style={styles.buttonText}>Save</Text>
           </TouchableOpacity>
+          {/* save the trash category map to database button */}
+          {/* <TouchableOpacity style={styles.saveButton} onPress={() => {saveLabelToCategoryMap(labelToCategoryMap)}}>
+            <Text style={styles.buttonText}>Saveeee</Text>
+          </TouchableOpacity> */}
         </View>
       )}
     </View>

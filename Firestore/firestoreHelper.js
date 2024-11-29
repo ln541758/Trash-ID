@@ -39,7 +39,7 @@ export async function getAllDocs(collectionName, fieldName) {
     const data = [];
     if (!querySnapshot.empty) {
       querySnapshot.forEach((docdata) => {
-        const fieldArray = docdata.data()["category"][fieldName]; // Access the specific field array
+        const fieldArray = docdata.data()[fieldName]; // Access the specific field array
         if (Array.isArray(fieldArray)) {
           const transformedArray = fieldArray.map((item) => ({
             value: item,
@@ -105,3 +105,17 @@ export async function fetchEnabledItems() {
   }
 }
 
+export async function fetchTrashKeyMap() {
+  const collectRef = collection(database, "trashKey");
+  try {
+    const querySnapshot = await getDocs(collectRef);
+    const data = {};
+    querySnapshot.forEach(doc => {
+      Object.assign(data, doc.data());
+    });
+    return data;
+  } catch (e) {
+    console.error("Error fetching trash key map: ", e);
+    return [];
+  }
+}
