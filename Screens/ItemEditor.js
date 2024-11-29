@@ -169,34 +169,39 @@ export default function ItemEditor({ navigation, route }) {
   // Function to handle Save button click
   const handleSave = async () => {
     let uri = currentItem?.source || "";
+    console.log("imageeeee", image);
+    console.log("imageChanged", imageChanged);
 
-    if (imageChanged && image) {
+    // Upload image if it has changed
+    // upload image if it is taken from camera tab
+    if (imageChanged && image || route.params?.labels) {
       uri = await uploadImage(image);
     }
 
-    const matchedCategory = route.params?.labels
-      ? route.params.labels.find((label) => {
-          for (const category in labelToCategoryMap) {
-            if (labelToCategoryMap[category].includes(label)) {
-              return category;
-            }
-          }
-          return null;
-        })
-      : categoryKey;
+    // const matchedCategory = route.params?.labels
+    //   ? route.params.labels.find((label) => {
+    //       for (const category in labelToCategoryMap) {
+    //         if (labelToCategoryMap[category].includes(label)) {
+    //           return category;
+    //         }
+    //       }
+    //       return null;
+    //     })
+    //   : categoryKey;
 
     const updatedItem = {
       source: uri,
       trashType: selectedCategory || route.params?.labels[0],
       trashDate: date,
       notification: isNotificationEnabled,
-      trashCategory: matchedCategory || "Uncategorized",
+      trashCategory: categoryKey,
     };
 
     if (!updatedItem.trashDate) {
       Alert.alert("Invalid Date", "Please select a valid date", [{ text: "OK" }]);
       return;
     }
+
     if (currentItem) {
       await updateDB(
         auth.currentUser.uid,
@@ -205,11 +210,11 @@ export default function ItemEditor({ navigation, route }) {
         updatedItem
       );
     } else {
+      console.log("updatedItem", updatedItem);
       await writeToDB(auth.currentUser.uid, "trash", updatedItem);
     }
-
     setImageChanged(false);
-    navigation.navigate("ItemList", { category: matchedCategory });
+    navigation.navigate("ItemList", { category: categoryKey });
   };
 
   // Function to handle Cancel button click
@@ -287,7 +292,7 @@ export default function ItemEditor({ navigation, route }) {
         )}
       </View>
 
-      {/* Trash Type */}
+      {/* Trash Category*/}
       {isEditMode ? (
         <DropDownPicker
           open={openTypePicker}
@@ -306,12 +311,12 @@ export default function ItemEditor({ navigation, route }) {
         />
       ) : (
         <View style={styles.fieldContainer}>
-          <Text style={styles.label}>Trash Type:</Text>
+          <Text style={styles.label}>Trash Category:</Text>
           <Text style={styles.value}>{categoryKey}</Text>
         </View>
       )}
 
-      {/* Category Dropdown  */}
+      {/* Type Dropdown  */}
       {isEditMode ? (
         <DropDownPicker
           open={openCategoryPicker}
@@ -320,7 +325,7 @@ export default function ItemEditor({ navigation, route }) {
           setOpen={setOpenCategoryPicker}
           setValue={setSelectedCategory}
           setItems={setCategories}
-          placeholder="Select a category"
+          placeholder="Select a type:"
           style={styles.dropdown}
           containerStyle={{
             zIndex: openCategoryPicker ? 2000 : 1,
@@ -330,7 +335,7 @@ export default function ItemEditor({ navigation, route }) {
         />
       ) : (
         <View style={styles.fieldContainer}>
-          <Text style={styles.label}>Category:</Text>
+          <Text style={styles.label}>Type:</Text>
           <Text style={styles.value}>{selectedCategory}</Text>
         </View>
       )}

@@ -31,12 +31,11 @@ export default function CameraScreen({ navigation }) {
 
       if (!result.canceled) {
         setImageUri(result.assets[0].uri);
-        console.log(result.assets[0].uri);
+        console.log(imageUri)
       }
     } catch (error) {
       console.error("Error launching camera:", error);
     }
-
   };
 
   // Function to handle navigating to Item Editor
