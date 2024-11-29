@@ -12,10 +12,9 @@ import * as ImagePicker from "expo-image-picker";
 import DropDownPicker from "react-native-dropdown-picker";
 import Checkbox from "expo-checkbox";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { getAllDocs, updateDB, writeToDB } from "../Firestore/firestoreHelper";
+import { getAllDocs, updateDB, writeToDB, fetchTrashKeyMap } from "../Firestore/firestoreHelper";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { storage, auth } from "../Firestore/firestoreSetup";
-
 
 export default function ItemEditor({ navigation, route }) {
   const [categoryKey, setCategoryKey] = useState(route.params.category);
@@ -43,6 +42,30 @@ export default function ItemEditor({ navigation, route }) {
     { label: "Hazardous", value: "Hazardous" },
     { label: "Garbage", value: "Garbage" },
   ]);
+  const [labelToCategoryMap, setLabelToCategoryMap] = useState({});
+
+  // const labelToCategoryMap = {
+  //   Recycling: [
+  //     "plastic",
+  //     "paper",
+  //     "cardboard",
+  //     "newspaper",
+  //     "envelope",
+  //     "metal",
+  //     "cloth"
+  //   ],
+  //   Organic: ["fruit", "vegetable", "egg", "coffee grounds"],
+  //   Hazardous: [
+  //     "battery",
+  //     "tetra",
+  //     "lithium-ion battery",
+  //     "alkaline battery",
+  //     "chemical container",
+  //     "paint can",
+  //     "aerosol can",
+  //   ],
+  //   Garbage: ["Pencil", "Styrofoam", "Cigarette butt", "Leaves"],
+  // };
 
   // Function to verify permission
   async function verifyPermission() {
@@ -145,32 +168,48 @@ export default function ItemEditor({ navigation, route }) {
 
   // Function to handle Save button click
   const handleSave = async () => {
-    // Save the data to the database
     let uri = currentItem?.source || "";
 
-  // Only upload a new image if imageChanged is true
-  if (imageChanged && image) {
-    uri = await uploadImage(image);
-  }
-    let updatedItem = {
+    if (imageChanged && image) {
+      uri = await uploadImage(image);
+    }
+
+    const matchedCategory = route.params?.labels
+      ? route.params.labels.find((label) => {
+          for (const category in labelToCategoryMap) {
+            if (labelToCategoryMap[category].includes(label)) {
+              return category;
+            }
+          }
+          return null;
+        })
+      : categoryKey;
+
+    const updatedItem = {
       source: uri,
-      trashType: selectedCategory,
+      trashType: selectedCategory || route.params?.labels[0],
       trashDate: date,
       notification: isNotificationEnabled,
-      trashCategory: categoryKey,
+      trashCategory: matchedCategory || "Uncategorized",
     };
+
+    if (!updatedItem.trashDate) {
+      Alert.alert("Invalid Date", "Please select a valid date", [{ text: "OK" }]);
+      return;
+    }
     if (currentItem) {
-      await updateDB(auth.currentUser.uid,
+      await updateDB(
+        auth.currentUser.uid,
         "trash",
         currentItem.id,
-        updatedItem);
+        updatedItem
+      );
     } else {
       await writeToDB(auth.currentUser.uid, "trash", updatedItem);
     }
-    // reset the imageChanged state
+
     setImageChanged(false);
-    // passing the category to the next screen
-    navigation.navigate("ItemList", { category: categoryKey });
+    navigation.navigate("ItemList", { category: matchedCategory });
   };
 
   // Function to handle Cancel button click
@@ -188,6 +227,47 @@ export default function ItemEditor({ navigation, route }) {
       },
     ]);
   };
+
+  useEffect( () => {
+    const fetchTrashMap = async () => {
+      const labelToCategoryMapTemp = await fetchTrashKeyMap();
+      setLabelToCategoryMap(labelToCategoryMapTemp);
+    };
+    fetchTrashMap();
+
+  }, []);
+
+  useEffect(() => {
+    if (route.params?.labels && labelToCategoryMap) {
+      const detectedLabels = route.params.labels;
+
+      let matchedCategory = "Uncategorized";
+      let matchedType = detectedLabels[0];
+
+      for (const category in labelToCategoryMap) {
+        const matchedLabel = detectedLabels.find((label) =>
+            labelToCategoryMap[category].includes(label)
+          )
+          if (matchedLabel) {
+          matchedCategory = category;
+          matchedType = matchedLabel;
+          break;
+        }
+      }
+
+      console.log("Matched Category:", matchedCategory);
+      console.log("Matched Type:", matchedType);
+
+      // when the detected label is not in the category map
+      if (matchedCategory === "Uncategorized") {
+        setCategoryKey("Garbage");
+        setSelectedCategory("others");
+      } else {
+      setCategoryKey(matchedCategory);
+      setSelectedCategory(matchedType);
+      }
+    }
+  }, [route.params?.labels, labelToCategoryMap]);
 
   return (
     <View style={styles.container}>
@@ -300,6 +380,10 @@ export default function ItemEditor({ navigation, route }) {
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
             <Text style={styles.buttonText}>Save</Text>
           </TouchableOpacity>
+          {/* save the trash category map to database button */}
+          {/* <TouchableOpacity style={styles.saveButton} onPress={() => {saveLabelToCategoryMap(labelToCategoryMap)}}>
+            <Text style={styles.buttonText}>Saveeee</Text>
+          </TouchableOpacity> */}
         </View>
       )}
     </View>

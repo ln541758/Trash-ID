@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, Pressable } from "react-nativ
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 import Categories from "./Screens/Categories";
-import Notifications from "./Screens/Notifications";
+import NotificationScreen from "./Screens/Notifications";
 import Home from "./Screens/Home";
 import ItemEditor from "./Screens/ItemEditor";
 import ItemList from "./Screens/ItemList";
@@ -95,7 +95,7 @@ const AppStack = (<>
         ) : null,
     })}
   />
-  <Stack.Screen name="Notifications" component={Notifications} />
+  <Stack.Screen name="Notifications" component={NotificationScreen} />
 
 </>);
 const AuthStack = (<>
