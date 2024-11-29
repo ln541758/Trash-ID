@@ -115,10 +115,18 @@ Easily create, view, update, or delete information related to your waste managem
 ### Contributions Summary:
 
 **Hao Pei:**<br>
-Implemented authentication and connection flow with Firebase Firestore, including CRUD operations with the database. Developed item editor, item list, item info, and categories screens with full functionality. Utilized Firebase authentication with email and password to ensure secure access to protected resources. Designed a login screen with features like password strength validation and account recovery options. Anonymous users does not have access to the data or use of APP, while account and profile details are available to logged-in users. Implemented the profile screen to enable users to view and edit their account information. Users can also log out of the app securely and reset their password if needed.
+*Iteration 1:*<br>
+Implemented authentication and connection flow with Firebase Firestore, including CRUD operations with the database. Developed item editor, item list, item info, and categories screens with full functionality.<br>
+*Iteration 2:*<br>
+Utilized Firebase authentication with email and password to ensure secure access to protected resources. Designed a login screen with features like password strength validation and account recovery options. Anonymous users does not have access to the data or use of APP, while account and profile details are available to logged-in users. Implemented the profile screen to enable users to view and edit their account information. Users can also log out of the app securely and reset their password if needed.<br>
+*Iteration 3:*<br>
 
 **Yin-Shan Lin:**<br>
-Set up the initial project structure and navigation using React Navigation. Completed CRUD operations in the application. Developed and styled the camera screen, item editor screen, item list screen, item info screen, and categories screen, including functionality implementation. Successfully implemented and handled camera permissions and usage, as well as location permissions and interactive map functionality with features such as displaying the user's current location, searching for places, and navigating through map markers.
+*Iteration 1:*<br>
+Set up the initial project structure and navigation using React Navigation. Completed CRUD operations in the application. Developed and styled the camera screen, item editor screen, item list screen, item info screen, and categories screen, including functionality implementation.<br>
+*Iteration 2:*<br>
+Successfully implemented and handled camera permissions and usage, as well as location permissions and interactive map functionality with features such as displaying the user's current location, searching for places, and navigating through map markers.<br>
+*Iteration 3:*<br>
 
 
 ## Screenshots
