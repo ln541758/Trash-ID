@@ -14,48 +14,36 @@ import { Entypo } from "@expo/vector-icons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { database, auth } from "../Firestore/firestoreSetup";
-import { collection } from "firebase/firestore";
+import { collection, doc, onSnapshot } from "firebase/firestore";
 import { deleteDB } from "../Firestore/firestoreHelper";
-import { doc } from "firebase/firestore";
-import { onSnapshot } from "firebase/firestore";
-
-
 
 function ItemList({ navigation, route }) {
-  const [items, setItems] = useState([]);
+  const [originalItems, setOriginalItems] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
   const categoryImage = {
-    "Recycling": require("../assets/Recyclable.jpg"),
-    "Organic": require("../assets/Organic.jpg"),
-    "Hazardous": require("../assets/Hazardous.jpg"),
-    "Garbage": require("../assets/Garbage.jpg"),
+    Recycling: require("../assets/Recyclable.jpg"),
+    Organic: require("../assets/Organic.jpg"),
+    Hazardous: require("../assets/Hazardous.jpg"),
+    Garbage: require("../assets/Garbage.jpg"),
   };
 
   const searchQuery = route.params?.searchQuery || "";
   const isAscending = route.params?.isAscending ?? true;
 
-  // Function to delete item
+  // Deletes an item from Firestore
   function handleDelete(id) {
-    Alert.alert(
-      "Delete Item",
-      "Are you sure you want to delete this item?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
+    Alert.alert("Delete Item", "Are you sure you want to delete this item?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        onPress: async () => {
+          await deleteDB(auth.currentUser.uid, "trash", id);
         },
-        {
-          text: "Delete",
-          onPress: async () => {
-            await deleteDB(auth.currentUser.uid, "trash", id);
-          },
-        },
-      ]
+      },
+    ]);
+  }
 
-    );
-  };
-
-
-  // add listener to fetch data from firestore
+  // Fetches data from Firestore and sets up a listener
   useEffect(() => {
     const docRef = doc(database, "trashData", auth.currentUser.uid);
 
@@ -73,7 +61,8 @@ function ItemList({ navigation, route }) {
             newArr.push(newEntry);
           }
         });
-        setItems(newArr); // Update the state to refresh the screen
+        setOriginalItems(newArr); 
+        setFilteredItems(newArr); 
       },
       (error) => {
         console.error("Error listening to trashData subcollection:", error);
@@ -85,50 +74,58 @@ function ItemList({ navigation, route }) {
     };
   }, []);
 
-
-
-
+  // Updates filtered items based on search and sort
   useEffect(() => {
-    let filteredItems = items;
+    let itemsToFilter = [...originalItems];
 
     if (searchQuery) {
-      filteredItems = filteredItems.filter((item) => item.trashType
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase())
+      itemsToFilter = itemsToFilter.filter((item) =>
+        item.trashType.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    filteredItems = filteredItems.sort((a, b) => isAscending
-      ? a.trashType.localeCompare(b.trashType)
-      : b.trashType.localeCompare(a.trashType)
+    itemsToFilter.sort((a, b) =>
+      isAscending
+        ? a.trashType.localeCompare(b.trashType)
+        : b.trashType.localeCompare(a.trashType)
     );
 
-    setItems(filteredItems);
-  }, [searchQuery, isAscending]);
+    setFilteredItems(itemsToFilter);
+  }, [searchQuery, isAscending, originalItems]);
 
+  // Renders a single item in the list
   function renderItem({ item }) {
     return (
       <TouchableOpacity
-        onPress={() => navigation.navigate("ItemEditor", {
-          itemObj: item,
-          isEditMode: false,
-          category: route.params.category,
-        })}
+        onPress={() =>
+          navigation.navigate("ItemEditor", {
+            itemObj: item,
+            isEditMode: false,
+            category: route.params.category,
+          })
+        }
         style={styles.itemContainer}
       >
-        <Image source={categoryImage[route.params.category]
-          || require('../assets/Recyclable.jpg')} style={styles.itemImage} />
+        <Image
+          source={
+            categoryImage[route.params.category] ||
+            require("../assets/Recyclable.jpg")
+          }
+          style={styles.itemImage}
+        />
         <View style={styles.itemInfo}>
           <Text style={styles.itemName}>{item.trashType}</Text>
         </View>
 
         <View style={styles.actionButtons}>
           <TouchableOpacity
-            onPress={() => navigation.navigate("ItemEditor", {
-              itemObj: item,
-              isEditMode: true,
-              category: route.params.category,
-            })}
+            onPress={() =>
+              navigation.navigate("ItemEditor", {
+                itemObj: item,
+                isEditMode: true,
+                category: route.params.category,
+              })
+            }
             style={styles.addButton}
           >
             <FontAwesome6 name="edit" size={24} color="black" />
@@ -136,9 +133,7 @@ function ItemList({ navigation, route }) {
 
           <TouchableOpacity
             style={styles.addButton}
-            onPress={() => {
-              handleDelete(item.id);
-            } }
+            onPress={() => handleDelete(item.id)}
           >
             <AntDesign name="delete" size={24} color="black" />
           </TouchableOpacity>
@@ -147,6 +142,7 @@ function ItemList({ navigation, route }) {
     );
   }
 
+  // Navigates to the notifications screen
   function handleNotification() {
     navigation.navigate("Notifications");
   }
@@ -157,20 +153,19 @@ function ItemList({ navigation, route }) {
         <TextInput
           style={styles.searchBar}
           placeholder="Search"
-          onChangeText={(text) => navigation.setParams({ searchQuery: text })} />
-        <Pressable
-          onPress={handleNotification}
-          style={styles.notificationButton}
-        >
+          onChangeText={(text) => navigation.setParams({ searchQuery: text })}
+        />
+        <Pressable onPress={handleNotification} style={styles.notificationButton}>
           <Entypo name="notification" size={24} color="black" />
         </Pressable>
       </View>
 
       <FlatList
-        data={items}
+        data={filteredItems} // Use filtered data
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
-        ItemSeparatorComponent={() => <View style={styles.separator} />} />
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+      />
     </View>
   );
 }

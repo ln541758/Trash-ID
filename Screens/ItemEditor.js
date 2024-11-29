@@ -169,20 +169,31 @@ export default function ItemEditor({ navigation, route }) {
 
   // Function to handle Save button click
   const handleSave = async () => {
-    // Save the data to the database
     let uri = currentItem?.source || "";
 
-    // Only upload a new image if imageChanged is true
     if (imageChanged && image) {
       uri = await uploadImage(image);
     }
-    let updatedItem = {
+
+    const matchedCategory = route.params?.labels
+      ? route.params.labels.find((label) => {
+          for (const category in labelToCategoryMap) {
+            if (labelToCategoryMap[category].includes(label)) {
+              return category;
+            }
+          }
+          return null;
+        })
+      : categoryKey;
+
+    const updatedItem = {
       source: uri,
-      trashType: selectedCategory,
+      trashType: selectedCategory || route.params?.labels[0],
       trashDate: date,
       notification: isNotificationEnabled,
-      trashCategory: categoryKey,
+      trashCategory: matchedCategory || "Uncategorized",
     };
+
     if (currentItem) {
       await updateDB(
         auth.currentUser.uid,
@@ -193,10 +204,9 @@ export default function ItemEditor({ navigation, route }) {
     } else {
       await writeToDB(auth.currentUser.uid, "trash", updatedItem);
     }
-    // reset the imageChanged state
+
     setImageChanged(false);
-    // passing the category to the next screen
-    navigation.navigate("ItemList", { category: categoryKey });
+    navigation.navigate("ItemList", { category: matchedCategory });
   };
 
   // Function to handle Cancel button click
@@ -216,10 +226,20 @@ export default function ItemEditor({ navigation, route }) {
   };
 
   useEffect(() => {
-    const categorizedItems = items.map((item) => {
+    if (route.params?.labels) {
+      const detectedLabels = route.params.labels;
+
+      let matchedCategory = "Uncategorized";
+      let matchedType = detectedLabels[0];
+
       for (const category in labelToCategoryMap) {
-        if (labelToCategoryMap[category].includes(item.trashType)) {
-          return { ...item, category };
+        if (
+          detectedLabels.some((label) =>
+            labelToCategoryMap[category].includes(label)
+          )
+        ) {
+          matchedCategory = category;
+          break;
         }
       }
       return { ...item, category: "Uncategorized" };
