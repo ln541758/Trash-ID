@@ -30,7 +30,7 @@ Easily create, view, update, or delete information related to your waste managem
 
 #### Collection 1: trash data:
 - Collection name: trashData <br>
-- Document ID: userInfo( will be added in authentication component)<br>
+- Document ID: userInfo<br>
     - **Fields:**<br>
     - username(string): Username of the user,<br>
     - email(string): Email address of the user,<br>
@@ -69,39 +69,14 @@ Easily create, view, update, or delete information related to your waste managem
     - justGarbage(array): Type of general garbage keywords,<br>
 - **NO CRUD Operations in collection 2**
 
-#### Collection 3: Recycle Center locations (will be built using API):
+#### Collection 3: Recycle Center locations:
 - Document ID: Auto-generated
 - **Fields:**
-- recycleLocation(array)<br>
-    - center 1(object):<br>
-        - name(string): Name of the recycling center,<br>
-        - openHour(string): opening and closing time,<br>
-        - geo(object):<br>
-            - lat(string): Latitude,<br>
-            - long(string): Longitude,<br>
+    - name(string): Name of the recycling center,<br>
+    - lat(string): Latitude,<br>
+    - long(string): Longitude,<br>
 - **NO CRUD Operations in collection 2**
 
-
-#### Collection 4 Schedule of garbage collection trucks:(optional: depending on the availability of the API)
-- Document ID: Auto-generated
-- **Fields:**
-- collectionSchedule(object)<br>
-    - area 1(object):<br>
-        - day(string): Day of the week,<br>
-        - time(string): Time of collection,<br>
-        - range(string): Area of collection,<br>
-    - area 2(object):<br>
-        - day(string): Day of the week,<br>
-        - time(string): Time of collection,<br>
-        - range(string): Area of collection,<br>
-    - area 3(object):<br>
-        - day(string): Day of the week,<br>
-        - time(string): Time of collection,<br>
-        - range(string): Area of collection,<br>
-    - area 4(object):<br>
-        - day(string): Day of the week,<br>
-        - time(string): Time of collection,<br>
-        - range(string): Area of collection,<br>
 
 
 
@@ -120,6 +95,8 @@ Implemented authentication and connection flow with Firebase Firestore, includin
 *Iteration 2:*<br>
 Utilized Firebase authentication with email and password to ensure secure access to protected resources. Designed a login screen with features like password strength validation and account recovery options. Anonymous users does not have access to the data or use of APP, while account and profile details are available to logged-in users. Implemented the profile screen to enable users to view and edit their account information. Users can also log out of the app securely and reset their password if needed.<br>
 *Iteration 3:*<br>
+Connected the trashKey collection to the app, allowing categorization of trash items based on the keywords from the trashKey collection. Implemented a function to upload the
+recycle center into the third collection. User can save the nearby recycle center location to database<br>
 
 **Yin-Shan Lin:**<br>
 *Iteration 1:*<br>
@@ -156,8 +133,7 @@ All team members have cloned the repository, created their own branches for feat
 If there are any contributions not directly reflected in GitHub commits (e.g., planning and design discussions), they are noted here along with the responsible team members.
 
 ## Demo Video
-[Demo 7 minutes](https://www.youtube.com/watch?v=HSr4WFZ8oRA)
+[Iteration3 Demo 7 minutes](https://www.youtube.com/watch?v=HSr4WFZ8oRA)
 <br>
-[Demo 5 mintues](https://youtu.be/-1CpOphaBr8)
+[Final Demo 5 mintues](https://youtu.be/-1CpOphaBr8)
 <br>
-
