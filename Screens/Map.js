@@ -11,6 +11,7 @@ import MapView, { Marker } from "react-native-maps";
 import axios from "axios";
 import * as Location from "expo-location";
 import Notif from "../Components/Notif";
+import { addRecyleData } from "../Firestore/firestoreHelper";
 
 export default function MapScreen({ navigation }) {
   const [location, setLocation] = useState(null); // User's current location
@@ -85,6 +86,16 @@ export default function MapScreen({ navigation }) {
     }
   };
 
+  // handle Close button
+  async function handleClose(locationData) {
+    let newLocation = {}
+    newLocation.name = locationData.title;
+    newLocation.latitude = locationData.latitude;
+    newLocation.longitude = locationData.longitude;
+    addRecyleData(newLocation);
+    setSelectedMarker(null);
+  }
+
   return (
     <View style={styles.container}>
       {/* Search bar and notification button */}
@@ -154,7 +165,7 @@ export default function MapScreen({ navigation }) {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.closeButton}
-            onPress={() => setSelectedMarker(null)} // Close the info box
+            onPress={() => handleClose(selectedMarker)}
           >
             <Text style={styles.closeButtonText}>Close</Text>
           </TouchableOpacity>

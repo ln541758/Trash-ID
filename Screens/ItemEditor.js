@@ -12,7 +12,7 @@ import * as ImagePicker from "expo-image-picker";
 import DropDownPicker from "react-native-dropdown-picker";
 import Checkbox from "expo-checkbox";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { getAllDocs, updateDB, writeToDB } from "../Firestore/firestoreHelper";
+import { getAllDocs, updateDB, writeToDB, fetchTrashKeyMap } from "../Firestore/firestoreHelper";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { storage, auth } from "../Firestore/firestoreSetup";
 
@@ -45,28 +45,30 @@ export default function ItemEditor({ navigation, route }) {
     { label: "Hazardous", value: "Hazardous" },
     { label: "Garbage", value: "Garbage" },
   ]);
+  const [labelToCategoryMap, setLabelToCategoryMap] = useState({});
 
-  const labelToCategoryMap = {
-    Recycling: [
-      "Plastic",
-      "Paper",
-      "Cardboard",
-      "Newspaper",
-      "Envelope",
-      "Metal",
-    ],
-    Organic: ["Fruit", "Vegetable", "Egg", "Coffee grounds"],
-    Hazardous: [
-      "Battery",
-      "Tetra",
-      "Lithium-ion battery",
-      "Alkaline battery",
-      "Chemical container",
-      "Paint can",
-      "Aerosol can",
-    ],
-    Garbage: ["Pencil", "Styrofoam", "Cigarette butt", "Leaves"],
-  };
+  // const labelToCategoryMap = {
+  //   Recycling: [
+  //     "plastic",
+  //     "paper",
+  //     "cardboard",
+  //     "newspaper",
+  //     "envelope",
+  //     "metal",
+  //     "cloth"
+  //   ],
+  //   Organic: ["fruit", "vegetable", "egg", "coffee grounds"],
+  //   Hazardous: [
+  //     "battery",
+  //     "tetra",
+  //     "lithium-ion battery",
+  //     "alkaline battery",
+  //     "chemical container",
+  //     "paint can",
+  //     "aerosol can",
+  //   ],
+  //   Garbage: ["Pencil", "Styrofoam", "Cigarette butt", "Leaves"],
+  // };
 
   // Function to verify permission
   async function verifyPermission() {
@@ -170,29 +172,38 @@ export default function ItemEditor({ navigation, route }) {
   // Function to handle Save button click
   const handleSave = async () => {
     let uri = currentItem?.source || "";
+    console.log("imageeeee", image);
+    console.log("imageChanged", imageChanged);
 
-    if (imageChanged && image) {
+    // Upload image if it has changed
+    // upload image if it is taken from camera tab
+    if (imageChanged && image || route.params?.labels) {
       uri = await uploadImage(image);
     }
 
-    const matchedCategory = route.params?.labels
-      ? route.params.labels.find((label) => {
-          for (const category in labelToCategoryMap) {
-            if (labelToCategoryMap[category].includes(label)) {
-              return category;
-            }
-          }
-          return null;
-        })
-      : categoryKey;
+    // const matchedCategory = route.params?.labels
+    //   ? route.params.labels.find((label) => {
+    //       for (const category in labelToCategoryMap) {
+    //         if (labelToCategoryMap[category].includes(label)) {
+    //           return category;
+    //         }
+    //       }
+    //       return null;
+    //     })
+    //   : categoryKey;
 
     const updatedItem = {
       source: uri,
       trashType: selectedCategory || route.params?.labels[0],
       trashDate: date,
       notification: isNotificationEnabled,
-      trashCategory: matchedCategory || "Uncategorized",
+      trashCategory: categoryKey,
     };
+
+    if (!updatedItem.trashDate) {
+      Alert.alert("Invalid Date", "Please select a valid date", [{ text: "OK" }]);
+      return;
+    }
 
     if (currentItem) {
       await updateDB(
@@ -202,11 +213,11 @@ export default function ItemEditor({ navigation, route }) {
         updatedItem
       );
     } else {
+      console.log("updatedItem", updatedItem);
       await writeToDB(auth.currentUser.uid, "trash", updatedItem);
     }
-
     setImageChanged(false);
-    navigation.navigate("ItemList", { category: matchedCategory });
+    navigation.navigate("ItemList", { category: categoryKey });
   };
 
   // Function to handle Cancel button click
@@ -225,42 +236,46 @@ export default function ItemEditor({ navigation, route }) {
     ]);
   };
 
+  useEffect( () => {
+    const fetchTrashMap = async () => {
+      const labelToCategoryMapTemp = await fetchTrashKeyMap();
+      setLabelToCategoryMap(labelToCategoryMapTemp);
+    };
+    fetchTrashMap();
+
+  }, []);
+
   useEffect(() => {
-    if (route.params?.labels) {
+    if (route.params?.labels && labelToCategoryMap) {
       const detectedLabels = route.params.labels;
 
       let matchedCategory = "Uncategorized";
       let matchedType = detectedLabels[0];
 
       for (const category in labelToCategoryMap) {
-        if (
-          detectedLabels.some((label) =>
+        const matchedLabel = detectedLabels.find((label) =>
             labelToCategoryMap[category].includes(label)
           )
-        ) {
+          if (matchedLabel) {
           matchedCategory = category;
+          matchedType = matchedLabel;
           break;
         }
       }
-      return { ...item, category: "Uncategorized" };
-    });
 
-    let filteredItems = categorizedItems;
+      console.log("Matched Category:", matchedCategory);
+      console.log("Matched Type:", matchedType);
 
-    if (searchQuery) {
-      filteredItems = filteredItems.filter((item) =>
-        item.trashType.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      // when the detected label is not in the category map
+      if (matchedCategory === "Uncategorized") {
+        setCategoryKey("Garbage");
+        setSelectedCategory("others");
+      } else {
+      setCategoryKey(matchedCategory);
+      setSelectedCategory(matchedType);
+      }
     }
-
-    filteredItems = filteredItems.sort((a, b) =>
-      isAscending
-        ? a.trashType.localeCompare(b.trashType)
-        : b.trashType.localeCompare(a.trashType)
-    );
-
-    setItems(filteredItems);
-  }, [searchQuery, isAscending]);
+  }, [route.params?.labels, labelToCategoryMap]);
 
   return (
     <View style={styles.container}>
@@ -280,7 +295,7 @@ export default function ItemEditor({ navigation, route }) {
         )}
       </View>
 
-      {/* Trash Type */}
+      {/* Trash Category*/}
       {isEditMode ? (
         <DropDownPicker
           open={openTypePicker}
@@ -299,12 +314,12 @@ export default function ItemEditor({ navigation, route }) {
         />
       ) : (
         <View style={styles.fieldContainer}>
-          <Text style={styles.label}>Trash Type:</Text>
+          <Text style={styles.label}>Trash Category:</Text>
           <Text style={styles.value}>{categoryKey}</Text>
         </View>
       )}
 
-      {/* Category Dropdown  */}
+      {/* Type Dropdown  */}
       {isEditMode ? (
         <DropDownPicker
           open={openCategoryPicker}
@@ -313,7 +328,7 @@ export default function ItemEditor({ navigation, route }) {
           setOpen={setOpenCategoryPicker}
           setValue={setSelectedCategory}
           setItems={setCategories}
-          placeholder="Select a category"
+          placeholder="Select a type:"
           style={styles.dropdown}
           containerStyle={{
             zIndex: openCategoryPicker ? 2000 : 1,
@@ -323,7 +338,7 @@ export default function ItemEditor({ navigation, route }) {
         />
       ) : (
         <View style={styles.fieldContainer}>
-          <Text style={styles.label}>Category:</Text>
+          <Text style={styles.label}>Type:</Text>
           <Text style={styles.value}>{selectedCategory}</Text>
         </View>
       )}
@@ -373,6 +388,10 @@ export default function ItemEditor({ navigation, route }) {
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
             <Text style={styles.buttonText}>Save</Text>
           </TouchableOpacity>
+          {/* save the trash category map to database button */}
+          {/* <TouchableOpacity style={styles.saveButton} onPress={() => {saveLabelToCategoryMap(labelToCategoryMap)}}>
+            <Text style={styles.buttonText}>Saveeee</Text>
+          </TouchableOpacity> */}
         </View>
       )}
     </View>

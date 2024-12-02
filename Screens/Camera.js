@@ -31,15 +31,7 @@ export default function CameraScreen({ navigation }) {
 
       if (!result.canceled) {
         setImageUri(result.assets[0].uri);
-
-        const labels = await analyzeImage(imageUri);
-        console.log("Labels:", labels);
-
-        navigation.navigate("ItemEditor", {
-          isEditMode: true,
-          imageUri: imageUri,
-          labels,
-        });
+        console.log(imageUri)
       }
     } catch (error) {
       console.error("Error launching camera:", error);
@@ -47,8 +39,16 @@ export default function CameraScreen({ navigation }) {
   };
 
   // Function to handle navigating to Item Editor
-  const handleItemEditor = () => {
-    navigation.navigate("ItemEditor", { isEditMode: true, imageUri });
+  const handleItemEditor = async () => {
+    const labels = await analyzeImage(imageUri);
+    console.log("Labels:", labels);
+
+    navigation.navigate("ItemEditor", {
+      isEditMode: true,
+      imageUri: imageUri,
+      labels,
+    });
+    // navigation.navigate("ItemEditor", { isEditMode: true, imageUri });
     setImageUri(null);
   };
 

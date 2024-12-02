@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, TextInput,
+  TouchableOpacity, Modal} from 'react-native'
 import React from 'react'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '../Firestore/firestoreSetup'
@@ -9,7 +10,15 @@ import { useNavigation } from '@react-navigation/native'
 export default function Login() {
   const [emailVar, setEmailVar] = useState('')
   const [passwordVar, setPasswordVar] = useState('')
+  const [currentEmail, setCurrentEmail] = useState('')
   const navigation = useNavigation()
+
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const handleLinkPress = () => {
+    setModalVisible(true);
+  };
+
   function handleNavigation() {
     navigation.replace('Signup')
   }
@@ -52,6 +61,38 @@ export default function Login() {
         onPress={handleNavigation}>
         <Text style={[styles.text, { fontSize: 15 }]}>New user? Create an account</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity onPress={handleLinkPress}>
+        <Text style={styles.linkText}>Forget password? </Text>
+      </TouchableOpacity>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <TextInput
+              style={[styles.input, {fontSize: 15}] }
+              value={currentEmail}
+              onChangeText={setCurrentEmail}
+              placeholder="Enter your email address here"
+              secureTextEntry={true}
+            />
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={[styles.button, { backgroundColor: 'green' }]} onPress={() => setModalVisible(false)}>
+                <Text style={styles.buttonText}>Submit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.button, { backgroundColor: 'red' }]} onPress={() => setModalVisible(false)}>
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   )
 }
@@ -71,7 +112,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
     marginBottom: 80,
-},
+  },
   text: {
     fontSize: 20,
     color: 'black',
@@ -95,5 +136,38 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     width: '70%',
     alignSelf: 'center',
+  },
+  linkText: {
+    color: 'blue',
+    textDecorationLine: 'underline',
+    alignSelf: 'center',
+    fontStyle: 'italic',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    marginTop: 20,
+  },
+  button: {
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 5,
+    marginHorizontal: 10,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
   },
 })
