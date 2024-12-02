@@ -145,7 +145,7 @@ Signin
 Profile
 ![Camera](assets/Profile.png)
 Notif
-![Camera](assets/Camera.png)
+![Camera](assets/Notif.png)
 
 
 
