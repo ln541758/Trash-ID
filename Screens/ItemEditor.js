@@ -47,28 +47,6 @@ export default function ItemEditor({ navigation, route }) {
   ]);
   const [labelToCategoryMap, setLabelToCategoryMap] = useState({});
 
-  // const labelToCategoryMap = {
-  //   Recycling: [
-  //     "plastic",
-  //     "paper",
-  //     "cardboard",
-  //     "newspaper",
-  //     "envelope",
-  //     "metal",
-  //     "cloth"
-  //   ],
-  //   Organic: ["fruit", "vegetable", "egg", "coffee grounds"],
-  //   Hazardous: [
-  //     "battery",
-  //     "tetra",
-  //     "lithium-ion battery",
-  //     "alkaline battery",
-  //     "chemical container",
-  //     "paint can",
-  //     "aerosol can",
-  //   ],
-  //   Garbage: ["Pencil", "Styrofoam", "Cigarette butt", "Leaves"],
-  // };
 
   // Function to verify permission
   async function verifyPermission() {
@@ -181,16 +159,6 @@ export default function ItemEditor({ navigation, route }) {
       uri = await uploadImage(image);
     }
 
-    // const matchedCategory = route.params?.labels
-    //   ? route.params.labels.find((label) => {
-    //       for (const category in labelToCategoryMap) {
-    //         if (labelToCategoryMap[category].includes(label)) {
-    //           return category;
-    //         }
-    //       }
-    //       return null;
-    //     })
-    //   : categoryKey;
 
     const updatedItem = {
       source: uri,
