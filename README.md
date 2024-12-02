@@ -127,7 +127,7 @@ Set up the initial project structure and navigation using React Navigation. Comp
 *Iteration 2:*<br>
 Successfully implemented and handled camera permissions and usage, as well as location permissions and interactive map functionality with features such as displaying the user's current location, searching for places, and navigating through map markers.<br>
 *Iteration 3:*<br>
-
+Integrated the Google Vision API to identify item categories based on images, ensuring accurate classification. Implemented local notifications, allowing users to schedule meaningful reminders related to waste management functionality. Resolved bugs in the Search Item feature.<br>
 
 ## Screenshots
 Categories
@@ -140,6 +140,12 @@ Map
 ![Map](assets/Map.png)
 Camera
 ![Camera](assets/Camera.png)
+Signin
+![Camera](assets/Signin.png)
+Profile
+![Camera](assets/Profile.png)
+Notif
+![Camera](assets/Camera.png)
 
 
 
@@ -150,4 +156,4 @@ All team members have cloned the repository, created their own branches for feat
 If there are any contributions not directly reflected in GitHub commits (e.g., planning and design discussions), they are noted here along with the responsible team members.
 
 ## Demo Video
-[Demo](https://youtu.be/QXBIjHk2NsU)
+[Demo](https://www.youtube.com/watch?v=HSr4WFZ8oRA)
