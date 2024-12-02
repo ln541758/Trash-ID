@@ -156,4 +156,6 @@ All team members have cloned the repository, created their own branches for feat
 If there are any contributions not directly reflected in GitHub commits (e.g., planning and design discussions), they are noted here along with the responsible team members.
 
 ## Demo Video
-[Demo](https://www.youtube.com/watch?v=HSr4WFZ8oRA)
+[Demo 7 minutes](https://www.youtube.com/watch?v=HSr4WFZ8oRA)
+[Demo 5 mintues](https://youtu.be/-1CpOphaBr8)
+
