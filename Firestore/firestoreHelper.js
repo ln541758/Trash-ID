@@ -119,3 +119,15 @@ export async function fetchTrashKeyMap() {
     return [];
   }
 }
+
+export async function addRecyleData(locationData) {
+  try {
+    // Reference the recycleCenter collection
+    const recycleCenterRef = collection(database, "recycleCenter");
+
+    const docRef = await addDoc(recycleCenterRef, locationData);
+
+  } catch (error) {
+    console.error("Error adding recycle center:", error);
+  }
+};
