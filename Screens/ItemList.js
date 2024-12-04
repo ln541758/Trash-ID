@@ -13,18 +13,20 @@ import {
 import { Entypo } from "@expo/vector-icons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { database, auth } from "../Firestore/firestoreSetup";
+import { database, auth, storage } from "../Firestore/firestoreSetup";
 import { collection, doc, onSnapshot } from "firebase/firestore";
 import { deleteDB } from "../Firestore/firestoreHelper";
+import { ref, getDownloadURL } from "firebase/storage";
+
 
 function ItemList({ navigation, route }) {
   const [originalItems, setOriginalItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
   const categoryImage = {
-    Recycling: require("../assets/Recyclable.jpg"),
-    Organic: require("../assets/Organic.jpg"),
-    Hazardous: require("../assets/Hazardous.jpg"),
-    Garbage: require("../assets/Garbage.jpg"),
+    Recycling: require("../assets/Recyclable.webp"),
+    Organic: require("../assets/Organic.webp"),
+    Hazardous: require("../assets/Hazardous.webp"),
+    Garbage: require("../assets/Residual.webp"),
   };
 
   const searchQuery = route.params?.searchQuery || "";
@@ -46,33 +48,49 @@ function ItemList({ navigation, route }) {
   // Fetches data from Firestore and sets up a listener
   useEffect(() => {
     const docRef = doc(database, "trashData", auth.currentUser.uid);
-
     const unsubscribe = onSnapshot(
       collection(docRef, "trash"),
-      (subCollectionSnapshot) => {
-        let newArr = [];
-        subCollectionSnapshot.forEach((subDoc) => {
-          const subDocData = subDoc.data();
-          if (subDocData.trashCategory === route.params.category) {
-            const newEntry = {
-              ...subDocData,
-              id: subDoc.id,
-            };
-            newArr.push(newEntry);
-          }
-        });
-        setOriginalItems(newArr); 
-        setFilteredItems(newArr); 
+      async (subCollectionSnapshot) => {
+        try {
+          const newArr = await Promise.all(
+            subCollectionSnapshot.docs.map(async (subDoc) => {
+              const subDocData = subDoc.data();
+              if (subDocData.trashCategory === route.params.category) {
+                const newEntry = {
+                  ...subDocData,
+                  id: subDoc.id,
+                };
+                if (newEntry.source) {
+                  const imageRef = ref(storage, newEntry.source);
+                  const httpImage = await getDownloadURL(imageRef);
+                  newEntry.imageURI = {uri: httpImage};
+                } else {
+                  newEntry.imageURI = categoryImage[route.params.category];
+                }
+                return newEntry;
+              }
+              return null; // Return null if it doesn't match the category
+            })
+          );
+
+          // Filter out null values
+          const filteredArr = newArr.filter((entry) => entry !== null);
+          setOriginalItems(filteredArr);
+          setFilteredItems(filteredArr);
+        } catch (error) {
+          console.error("Error processing subcollection snapshot:", error);
+        }
       },
       (error) => {
         console.error("Error listening to trashData subcollection:", error);
       }
     );
-
+    console.log("data:", originalItems);
     return () => {
       unsubscribe();
     };
   }, []);
+
 
   // Updates filtered items based on search and sort
   useEffect(() => {
@@ -107,11 +125,12 @@ function ItemList({ navigation, route }) {
         style={styles.itemContainer}
       >
         <Image
-          source={
-            categoryImage[route.params.category] ||
-            require("../assets/Recyclable.jpg")
-          }
+          source={item.imageURI}
           style={styles.itemImage}
+          alt="No Image"
+          onError={(e) => {console.log(e);
+            item.imageURI = categoryImage[route.params.category];
+          }}
         />
         <View style={styles.itemInfo}>
           <Text style={styles.itemName}>{item.trashType}</Text>

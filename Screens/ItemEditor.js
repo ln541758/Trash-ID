@@ -17,9 +17,6 @@ import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { storage, auth } from "../Firestore/firestoreSetup";
 
 export default function ItemEditor({ navigation, route }) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [items, setItems] = useState([]);
-  const [isAscending, setIsAscending] = useState(true);
   const [categoryKey, setCategoryKey] = useState(route.params.category);
   const isEditMode = route.params?.isEditMode ?? true;
   const currentItem = route.params.itemObj;
@@ -204,6 +201,7 @@ export default function ItemEditor({ navigation, route }) {
     ]);
   };
 
+  // Fetch the trash category map from the database
   useEffect( () => {
     const fetchTrashMap = async () => {
       const labelToCategoryMapTemp = await fetchTrashKeyMap();
