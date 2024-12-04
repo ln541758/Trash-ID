@@ -1,7 +1,9 @@
 import { StyleSheet, Text, View, TextInput,
   TouchableOpacity, Modal} from 'react-native'
 import React from 'react'
-import { signInWithEmailAndPassword } from 'firebase/auth'
+import { signInWithEmailAndPassword,
+  sendPasswordResetEmail
+ } from 'firebase/auth'
 import { auth } from '../Firestore/firestoreSetup'
 import { useState } from 'react'
 import { Alert } from 'react-native'
@@ -34,6 +36,38 @@ export default function Login() {
       Alert.alert('Failed to login')
     }
   }
+  const checkEmail = (email) => {
+    if (!email) {
+      Alert.alert("Please enter an email address.");
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    return emailRegex.test(email);
+  }
+
+  const resetPassword = (email) => {
+    if (!checkEmail(email)) {
+      Alert.alert("Please enter an valid email address.");
+      return;
+    }
+    sendPasswordResetEmail(auth, email)
+      .then(() => {
+        Alert.alert("If the email exists, a password reset link will be sent to the email address provided.");
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.error("Error: ", errorCode, errorMessage);
+      });
+    setCurrentEmail('');
+    setModalVisible(false);
+  };
+
+  const handleCancel = () => {
+    setCurrentEmail('');
+    setModalVisible(false);
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>TrashID</Text>
@@ -79,15 +113,15 @@ export default function Login() {
               value={currentEmail}
               onChangeText={setCurrentEmail}
               placeholder="Enter your email address here"
-              secureTextEntry={true}
+              secureTextEntry={false}
             />
 
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={[styles.button, { backgroundColor: 'green' }]} onPress={() => setModalVisible(false)}>
-                <Text style={styles.buttonText}>Submit</Text>
+              <TouchableOpacity style={[styles.button, { backgroundColor: 'red' }]} onPress={() => handleCancel()}>
+                <Text style={styles.buttonText}>Cancel </Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.button, { backgroundColor: 'red' }]} onPress={() => setModalVisible(false)}>
-                <Text style={styles.buttonText}>Cancel</Text>
+              <TouchableOpacity style={[styles.button, { backgroundColor: 'green' }]} onPress={() => resetPassword(currentEmail)}>
+                <Text style={styles.buttonText}>Submit </Text>
               </TouchableOpacity>
             </View>
           </View>
